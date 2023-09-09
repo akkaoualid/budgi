@@ -1,13 +1,13 @@
 import { View, Alert } from "react-native";
 import { Text, Input, Button } from "galio-framework";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Category } from "./DBOp";
-import { useState, useEffect } from "react";
+import { Budgets } from "./DBOp";
+import { useState } from "react";
 
-export default function AddCategory({ navigation }) {
-  const { addCategory } = Category();
+export default function AddCategory({ navigation, route }) {
+  const { budgetID } = route.params;
+  const { addCat } = Budgets();
   const [name, setName] = useState("");
-  const [cats, setCats] = useState(null);
   const [desc, setDesc] = useState("");
   return (
     <SafeAreaView style={{ backgroundColor: "#E5DDF0", height: "100%" }}>
@@ -17,25 +17,34 @@ export default function AddCategory({ navigation }) {
         </Text>
         <Input onChangeText={setName} placeholder="Name" />
         <Input onChangeText={setDesc} placeholder="Description" />
-        <Button
-          onPress={() =>
-            {if (name === "" || value === 0) {
-              Alert.alert(
-                "Couldn't add category",
-                "plz fill the blanks before adding anything smh."
-              );
-            } else {
-            addCategory({
-              name: name,
-              desc: desc,
-              date: new Date().toISOString(),
-            })
-            navigation.goBack();
-          }}
-        }
-        >
-          Create.
-        </Button>
+        <View className="flex-row">
+          <Button
+            onPress={() => navigation.goBack()}
+            style={{ borderColor: "#6934BF" }}
+            color="transparent"
+          >
+            <Text color="#6934BF">Cancel.</Text>
+          </Button>
+          <Button
+            onPress={() => {
+              if (name === "" || desc === 0) {
+                Alert.alert(
+                  "Couldn't add category",
+                  "plz fill the blanks before adding anything smh."
+                );
+              } else {
+                addCat(budgetID, {
+                  name: name,
+                  desc: desc,
+                  date: new Date().toISOString(),
+                });
+                navigation.goBack();
+              }
+            }}
+          >
+            Create.
+          </Button>
+        </View>
       </View>
     </SafeAreaView>
   );

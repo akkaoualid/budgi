@@ -15,7 +15,8 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.akkaoualid.budgi"
     },
     "android": {
       "adaptiveIcon": {
@@ -25,7 +26,12 @@
       "package": "com.akkaoualid.budgi"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/icon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "e8f6fb16-6232-4a05-b5f7-d2b960233b5a"
+      }
     }
   }
 }

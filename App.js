@@ -1,3 +1,4 @@
+import "react-native-gesture-handler";
 import Home from "./src/Home.js";
 import AddBudget from "./src/AddBudget.js";
 import AddTransaction from "./src/AddTransaction.js";
@@ -11,7 +12,6 @@ import Audit from "./src/Audit.js";
 import { GalioProvider } from "galio-framework";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { MenuProvider } from "react-native-popup-menu";
 import { useFonts } from "expo-font";
 
 const CTHEME = {
@@ -33,21 +33,19 @@ export default function App() {
   return (
     <NavigationContainer>
       <GalioProvider theme={CTHEME}>
-        <MenuProvider>
-          <Stack.Navigator
-            screenOptions={{ headerShown: false }}
-            initialRouteName="Home"
-          >
-            <Stack.Screen name="Home" component={Home} />
-            <Stack.Screen name="Setup" component={AddBudget} />
-            <Stack.Screen name="Budget" component={TransacView} />
-            <Stack.Screen name="Settings" component={Settings} />
-            <Stack.Screen name="AddTransac" component={AddTransaction} />
-            <Stack.Screen name="AddCat" component={AddCategory} />
-            <Stack.Screen name="AddGoal" component={AddGoal} />
-            <Stack.Screen name="Audit" component={Audit} />
-          </Stack.Navigator>
-        </MenuProvider>
+        <Stack.Navigator
+          screenOptions={{ headerShown: false }}
+          initialRouteName="Home"
+        >
+          <Stack.Screen name="Home" component={Home} />
+          <Stack.Screen name="Setup" component={AddBudget} />
+          <Stack.Screen name="Budget" component={TransacView} />
+          <Stack.Screen name="Settings" component={Settings} />
+          <Stack.Screen name="AddTransac" component={AddTransaction} />
+          <Stack.Screen name="AddCat" component={AddCategory} />
+          <Stack.Screen name="AddGoal" component={AddGoal} />
+          <Stack.Screen name="Audit" component={Audit} />
+        </Stack.Navigator>
       </GalioProvider>
     </NavigationContainer>
   );

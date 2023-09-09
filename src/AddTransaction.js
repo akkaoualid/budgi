@@ -1,28 +1,29 @@
-import { Text, Button, Input, Checkbox } from "galio-framework";
-import { View, Modal, Pressable, Switch, Alert } from "react-native";
-import SelectDropdown from "react-native-select-dropdown";
+import { Text, Button, Input } from "galio-framework";
+import { View, Switch, Alert, Dimensions } from "react-native";
+import DropDownPicker from "react-native-dropdown-picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { BlurView } from "expo-blur";
 import { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Transaction, Budgets, Category } from "./DBOp";
+import { Budgets } from "./DBOp";
 
 export default function AddTransaction({ route, navigation }) {
-  const { categories } = Category();
   const [date, setDate] = useState(new Date(Date.now()));
   const [mode, setMode] = useState("date");
   const [show, setShow] = useState(false);
-  const [categoryIdx, setCategoryIdx] = useState(0);
+  const [categoryStr, setCategoryStr] = useState(null);
   const [expn, setExpn] = useState(false);
 
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
   const [value, setValue] = useState("");
 
-  //const { addTransac } = Transaction();
+  const [open, setOpen] = useState(false);
+  const [_value, _setValue] = useState(90);
+
   const { budgetID } = route.params;
-  console.debug(budgetID);
+
   const { addTransac, budgets } = Budgets();
+  const categories = budgets[budgetID].categories || [];
   const onChange = (event, selectedDate) => {
     const currentDate = selectedDate;
     setShow(false);
@@ -57,7 +58,7 @@ export default function AddTransaction({ route, navigation }) {
             }}
           />
           <Input
-            type="numeric"
+            type="number-pad"
             placeholder="Value."
             icon="money"
             onChangeText={setValue}
@@ -125,18 +126,47 @@ export default function AddTransaction({ route, navigation }) {
             />
             <Text>Income</Text>
           </View>
-          <View style={{ gap: 20 }}>
-            <SelectDropdown
-              defaultButtonText="Select Category."
-              data={categories.map((x) => x.name)}
-              buttonStyle={{
+          <View className="w-full" style={{ gap: 20 }}>
+            <DropDownPicker
+              style={{
+                borderWidth: 0,
+                zIndex: 1000,
+                borderBottomWidth: 1,
+                width: "100%",
                 borderColor: "#6934BF",
-                borderWidth: 1,
-                borderRadius: 5,
-                backgroundColor: "white",
+                alignSelf: "center"
               }}
-              buttonTextStyle={{ color: "#6934BF" }}
-              onSelect={(_, i) => setCategoryIdx(i)}
+              containerStyle={{
+                borderWidth: 0,
+                borderColor: "white",
+                zIndex: 1000,
+                height: Dimensions.get("screen").height * 0.2,
+              }}
+              textStyle={{ color: "#6934BF", fontSize: 15, borderWidth: 0 }}
+              dropDownContainerStyle={{
+                color: "#6934BF",
+                borderWidth: 0,
+                backgroundColor: "white",
+                zIndex: 1000,
+                paddingBottom: 5,
+              }}
+              listItemContainerStyle={{
+                backgroundColor: "rgba(0,0,0,0.05)",
+                paddingHorizontal: 2,
+                paddingVertical: 2,
+                borderRadius: 5,
+                marginTop: 2,
+                width: "98%",
+                alignSelf: "center",
+              }}
+              open={open}
+              value={_value}
+              setOpen={setOpen}
+              setValue={_setValue}
+              onSelectItem={(s) => setCategoryStr(s["label"])}
+              items={categories.map((v, i) => {
+                return { label: v.name, value: i };
+              })}
             />
           </View>
         </View>
@@ -157,19 +187,31 @@ export default function AddTransaction({ route, navigation }) {
                 );
               } else if (
                 expn &&
-                Math.abs(parseInt(value)) > parseInt(budgets[budgetID].value)
+                Math.abs(parseFloat(value)) >
+                  parseFloat(budgets[budgetID].newvalue)
               ) {
                 Alert.alert(
                   "Couldn't add transaction",
                   "the expense value exceeds the budget."
                 );
               } else {
-                addTransac(budgetID, {
-                  name: name,
-                  desc: desc,
-                  value: expn ? parseInt(value) * -1 : parseInt(value),
-                  date: date.toISOString(),
-                });
+                if (isNaN(parseFloat(value))) {
+                  Alert.alert(
+                    "Invalid value",
+                    `the value you supplied "${value}" is invalid`
+                  );
+                } else {
+                  addTransac(budgetID, {
+                    name: name,
+                    desc: desc,
+                    value: expn
+                      ? Math.abs(parseFloat(value)) * -1
+                      : Math.abs(parseFloat(value)),
+                    category: categoryStr || "Uncategorized",
+                    date: date.toISOString(),
+                  });
+                  navigation.goBack();
+                }
               }
             }}
           >

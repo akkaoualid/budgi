@@ -1,13 +1,13 @@
 import { SafeAreaView } from "react-native-safe-area-context";
 import { View } from "react-native";
 import { Text, Button } from "galio-framework";
-import { LinearGradient } from "expo-linear-gradient";
-import { HLine, getFriendlyFormat } from "./Utility";
-import { Entypo, MaterialIcons, AntDesign } from "@expo/vector-icons";
+import { getFriendlyFormat } from "./Utility";
+import { AntDesign } from "@expo/vector-icons";
 import { Budgets } from "./DBOp";
 
 export default function TransacView({ route, navigation }) {
-  const { budgetID, tr_idx, name, description, category, amount, date } = route.params;
+  const { budgetID, tr_idx, name, description, amount, date } =
+    route.params;
   const { delTransac } = Budgets();
   return (
     <SafeAreaView style={{ backgroundColor: "#E5DDF0" }}>
@@ -23,13 +23,13 @@ export default function TransacView({ route, navigation }) {
           }}
         >
           <AntDesign
-            name={parseInt(amount) >= 0 ? "upcircleo" : "downcircleo"}
+            name={parseFloat(amount) >= 0 ? "upcircleo" : "downcircleo"}
             color="#6934BF"
             size={50}
           />
         </View>
         <Text h1 color="#6934BF" style={{ fontFamily: "Inter-Light" }}>
-          {amount < 0 ? "Expense": "Income"}
+          {amount < 0 ? "Expense" : "Income"}
         </Text>
         <View
           className="items-center w-full rounded-lg py-8"
@@ -60,14 +60,24 @@ export default function TransacView({ route, navigation }) {
               Amount
             </Text>
             <Text style={{ fontFamily: "Inter-Bold" }} h5>
-              {getFriendlyFormat(parseInt(amount) < 0 ? parseInt(amount) * -1 : parseInt(amount))} USD
+              {getFriendlyFormat(
+                parseFloat(amount) < 0 ? parseFloat(amount) * -1 : parseFloat(amount)
+              )}{" "}
+              USD
             </Text>
           </View>
-          <Button className="mt-5" color="#6934BF" onPress={() => delTransac(budgetID, tr_idx)}>
+          <Button
+            className="mt-5"
+            color="#6934BF"
+            onPress={() => {
+              delTransac(budgetID, tr_idx, parseFloat(amount));
+              navigation.goBack();
+            }}
+          >
             DELETE
           </Button>
         </View>
-        <View className="flex-row items-center" style={{ }}>
+        <View className="flex-row items-center" style={{}}>
           <Button color="white" onPress={navigation.goBack}>
             <Text color="#6934BF">BACK</Text>
           </Button>

@@ -1,12 +1,10 @@
-import { ScrollView, View } from "react-native";
+import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Text, Input, Button } from "galio-framework";
-import { BarChart, LineChart, ProgressChart } from "react-native-chart-kit";
+import { Text, Button } from "galio-framework";
+import { LineChart, ProgressChart } from "react-native-chart-kit";
 import { Dimensions } from "react-native";
-import { useState } from "react";
-import { Budgets, Transaction, Category, Goals } from "./DBOp";
-import { Section, getFriendlyFormat } from "./Utility";
-import * as Progress from "react-native-progress";
+import { Budgets, AppSettings } from "./DBOp";
+import { getFriendlyFormat } from "./Utility";
 import Carousel from "react-native-reanimated-carousel";
 import { AntDesign } from "@expo/vector-icons";
 
@@ -24,19 +22,11 @@ const chartConfig = {
   useShadowColorFromDataset: false,
 };
 
-function sumAllTransactions(transacs) {
-  return transacs.map((v) => parseInt(v.value)).reduce((v1, v2) => v1 + v2, 0);
-}
 
 // get all categories and calculate the percentage by their occurence
 function getCategoryPercentage(transacs) {
-  const categories = transacs.categories;
   let data = { labels: [], data: [] };
-  let labels = transacs
-    .map((v) =>
-      categories.filter((_, i) => v.category_idx === i).map((i) => i.name)
-    )
-    .flat();
+  let labels = transacs.map((v) => v.category).flat();
   let occ = {};
   labels.forEach((v) => {
     let temp = occ[v];
@@ -54,7 +44,7 @@ function getBudgetVariation(transacs) {
     const _date = new Date(v.date).toLocaleDateString();
     const temp = byDate[_date];
     byDate[_date] =
-      temp === undefined ? parseInt(v.value) : temp + parseInt(v.value);
+      temp === undefined ? parseFloat(v.value) : temp + parseFloat(v.value);
   });
 
   return {
@@ -85,7 +75,7 @@ function getByMonth(transacs) {
       const _date = monthNames[new Date(v.date).getMonth()];
       const temp = byDate[_date];
       byDate[_date] =
-        temp === undefined ? parseInt(v.value) : temp + parseInt(v.value);
+        temp === undefined ? parseFloat(v.value) : temp + parseFloat(v.value);
     });
   return {
     labels: Object.keys(byDate),
@@ -94,17 +84,16 @@ function getByMonth(transacs) {
 }
 
 export default function Audit({ route, navigation }) {
-  
-  const { budget, budgetID, name, value } = route.params;
+  const { budget, budgetID } = route.params;
+  const { settings } = AppSettings();
   const transacs = budget.transactions;
-  const budgetSpentSum = sumAllTransactions(transacs) || 0;
-  //const data = getCategoryPercentage(transacs);
+  const data = getCategoryPercentage(transacs);
   const lineData = getBudgetVariation(transacs);
   const monthData = getByMonth(transacs);
-  const { delGoal, goals } = Goals();
-  const filteredGoals = goals.filter((v) => v.budget_idx === budget);
-
-  console.debug(budgetSpentSum, value);
+  const { delGoal, delBudget } = Budgets();
+  const goals = Budgets().budgets[budgetID].goals || [];
+  const newvalue = parseFloat(budget.newvalue);
+  const oldvalue = parseFloat(budget.oldvalue);
 
   return (
     <SafeAreaView style={{ backgroundColor: "#E5DDF0", height: "100%" }}>
@@ -126,22 +115,18 @@ export default function Audit({ route, navigation }) {
             >
               <AntDesign
                 size={10}
-                name={
-                  budgetSpentSum + parseInt(value) >= value
-                    ? "caretup"
-                    : "caretdown"
-                }
-                color={
-                  budgetSpentSum + parseInt(value) >= value ? "green" : "red"
-                }
+                name={newvalue >= oldvalue ? "caretup" : "caretdown"}
+                color={newvalue >= oldvalue ? "green" : "red"}
               />
               <Text
-                color={
-                  budgetSpentSum + parseInt(value) >= value ? "green" : "red"
-                }
+                color={newvalue >= oldvalue ? "green" : "red"}
                 style={{ fontSize: 10 }}
               >
-                {((budgetSpentSum / parseInt(value)) * 100).toFixed(2)}%
+                {
+                  // we only want the profit compared to the last transaction
+                  (((newvalue - oldvalue) / oldvalue) * 100).toFixed(2)
+                }
+                %
               </Text>
             </View>
             <Button
@@ -151,13 +136,8 @@ export default function Audit({ route, navigation }) {
               color="grey"
               iconColor="#6934BF"
               onPress={() => {
-                transacs.forEach((v, i) =>
-                  delTransac({ budget_idx: budget, idx: i })
-                );
-                goals.forEach((v, i) =>
-                  delGoal({ budget_idx: budget, idx: i })
-                );
-                delBudget(budget);
+                delBudget(budgetID);
+                navigation.goBack();
               }}
               onlyIcon
             ></Button>
@@ -166,13 +146,13 @@ export default function Audit({ route, navigation }) {
             color="#6934BF"
             style={{ fontFamily: "Jose-Regular", fontSize: 50 }}
           >
-            {(parseInt(value) + budgetSpentSum).toLocaleString()}
+            {newvalue.toLocaleString()}
           </Text>
           <View
             className="flex-row items-center"
             style={{ justifyContent: "space-between" }}
           >
-            <Text color="#6934BF">USD</Text>
+            <Text color="#6934BF">{settings.currency}</Text>
           </View>
         </View>
         <Text
@@ -196,23 +176,25 @@ export default function Audit({ route, navigation }) {
             width={Dimensions.get("window").width}
             height={Dimensions.get("window").height / 3}
             data={[
-              // <View
-              //   className="py-5 px-5 items-center rounded-lg mx-5"
-              //   style={{ backgroundColor: "#6934BF" }}
-              // >
-              //   <Text color="white" style={{ fontFamily: "Inter-Regular" }} h3>
-              //     Categories
-              //   </Text>
-              //   <ProgressChart
-              //     data={data}
-              //     width={screenWidth - 80}
-              //     height={200}
-              //     strokeWidth={16}
-              //     radius={32}
-              //     chartConfig={chartConfig}
-              //     hideLegend={false}
-              //   />
-              // </View>,
+              <View
+                className="py-5 px-5 items-center rounded-lg mx-5"
+                style={{ backgroundColor: "#6934BF" }}
+              >
+                <Text color="white" style={{ fontFamily: "Inter-Regular" }} h3>
+                  Categories
+                </Text>
+                <View className="mr-20">
+                  <ProgressChart
+                    data={data}
+                    width={screenWidth}
+                    height={200}
+                    strokeWidth={16}
+                    radius={30}
+                    chartConfig={chartConfig}
+                    hideLegend={false}
+                  />
+                </View>
+              </View>,
               <View
                 className="py-5 px-5 rounded-lg items-center mx-5"
                 style={{ backgroundColor: "#6934BF" }}
@@ -261,7 +243,7 @@ export default function Audit({ route, navigation }) {
         >
           Goals
         </Text>
-        {filteredGoals.length === 0 ? (
+        {goals.length === 0 ? (
           <View
             className="rounded-lg w-full py-20 px-5 items-center"
             style={{ backgroundColor: "#6934BF" }}
@@ -275,7 +257,7 @@ export default function Audit({ route, navigation }) {
             mode="stack"
             width={Dimensions.get("window").width}
             height={200}
-            data={filteredGoals}
+            data={goals}
             renderItem={({ index, item }) => (
               <View
                 className="mx-5 items-center py-5 px-5 rounded-lg"
@@ -288,12 +270,33 @@ export default function Audit({ route, navigation }) {
                 >
                   {item.name}
                 </Text>
-                <Progress.Bar
-                  progress={(parseInt(value) + budgetSpentSum) / item.value}
-                  height={10}
-                  width={300}
-                  color="white"
-                />
+                <View
+                  style={{
+                    backgroundColor: "rgba(0,0,0,0)",
+                    borderWidth: 1,
+                    borderColor: "white",
+                    height: "10%",
+                    borderRadius: 5,
+                    width: screenWidth * 0.8,
+                  }}
+                >
+                  <View
+                    style={{
+                      backgroundColor: "white",
+                      height: "100%",
+                      borderRadius: 5,
+                      width:
+                        parseFloat(item.value) <= newvalue
+                          ? "100%"
+                          : `${
+                              100 -
+                              ((parseFloat(item.value) - newvalue) /
+                                parseFloat(item.value)) *
+                                100
+                            }%`,
+                    }}
+                  ></View>
+                </View>
                 <View
                   className="flex-row w-full"
                   style={{ justifyContent: "space-between" }}
@@ -308,9 +311,7 @@ export default function Audit({ route, navigation }) {
                 <Button
                   color="white"
                   style={{ width: 70, height: 30 }}
-                  onPress={() =>
-                    delGoal({ budget_idx: budget, idx: index - 1 })
-                  }
+                  onPress={() => delGoal(budgetID, index)}
                 >
                   <Text color="#6934BF" style={{ fontSize: 12 }}>
                     DELETE

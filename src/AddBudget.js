@@ -1,4 +1,4 @@
-import { FlatList, View, Alert } from "react-native";
+import { View, Alert } from "react-native";
 import { Text, Button, Input } from "galio-framework";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
@@ -16,11 +16,9 @@ export default function AddBudget({ navigation }) {
   const [mode, setMode] = useState("date");
   const [show, setShow] = useState(false);
 
-  const { budgets, addBudget } = Budgets();
+  const { addBudget } = Budgets();
 
-  console.debug(budgets);
-
-  const onChange = (event, selectedDate) => {
+  const onChange = (_, selectedDate) => {
     const currentDate = selectedDate;
     setShow(false);
     setDate(currentDate);
@@ -132,8 +130,25 @@ export default function AddBudget({ navigation }) {
                   "please make sure you filled all the inputs before adding."
                 );
               } else {
-                addBudget({ name: name, desc: desc, value: value, date: date.toISOString(), transactions: [] });
-                navigation.goBack();
+                if (isNaN(parseFloat(value)) || value <= 0) {
+                  Alert.alert(
+                    "Invalid value",
+                    `the value you supplied "${value}" is invalid`
+                  );
+                } else {
+                  addBudget({
+                    name: name,
+                    desc: desc,
+                    value: value,
+                    oldvalue: value,
+                    newvalue: value,
+                    date: date.toISOString(),
+                    transactions: [],
+                    goals: [],
+                    categories: [],
+                  });
+                  navigation.goBack();
+                }
               }
             }}
           >

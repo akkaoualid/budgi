@@ -4,18 +4,11 @@ import {
   Modal,
   TouchableOpacity,
   Dimensions,
+  Alert,
 } from "react-native";
 import { Text, Icon, Button } from "galio-framework";
-import {
-  Menu,
-  MenuOptions,
-  MenuOption,
-  MenuTrigger,
-} from "react-native-popup-menu";
 import { useState } from "react";
 import { BlurView } from "expo-blur";
-import { HLine } from "./Utility";
-import { LinearGradient } from "expo-linear-gradient";
 import {
   FontAwesome,
   AntDesign,
@@ -45,8 +38,8 @@ function SectionOpt({ icon, callback, text }) {
 export default function BotNav({
   navigation,
   route,
-  onPlusPress,
   carouselIdx,
+  disabled,
 }) {
   const [pops, showPop] = useState(false);
   return (
@@ -114,7 +107,9 @@ export default function BotNav({
                   }
                   callback={() => {
                     showPop(false);
-                    navigation.navigate("AddCat");
+                    navigation.navigate("AddCat", {
+                      budgetID: carouselIdx,
+                    });
                   }}
                 />
                 <SectionOpt
@@ -123,7 +118,7 @@ export default function BotNav({
                   callback={() => {
                     showPop(false);
                     navigation.navigate("AddGoal", {
-                      budget_idx: carouselIdx
+                      budget_idx: carouselIdx,
                     });
                   }}
                 />
@@ -152,7 +147,14 @@ export default function BotNav({
             height: 50 * 1.25,
           }}
           onPress={() => {
-            showPop(true);
+            if (disabled) {
+              Alert.alert(
+                "Can't access menu",
+                "Looks like you didn't initialize a budget."
+              );
+            } else {
+              showPop(true);
+            }
           }}
           onlyIcon
         />

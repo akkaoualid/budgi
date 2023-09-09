@@ -1,15 +1,18 @@
 import { View, TouchableOpacity, FlatList, Dimensions } from "react-native";
+import DropDownPicker from "react-native-dropdown-picker";
 import { Button, Text } from "galio-framework";
 import { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-import { HLine, ExpCard } from "./Utility";
-import { Budgets, Transaction, Goals } from "./DBOp";
+import { HLine, ExpCard, getFriendlyFormat } from "./Utility";
+import { Budgets, AppSettings } from "./DBOp";
 import Carousel from "react-native-reanimated-carousel";
 import BotNav from "./BotNav";
 import { LinearGradient } from "expo-linear-gradient";
 
-function BudgetCard({ name, value, callback }) {
+function BudgetCard({ name, value, callback, budgetID }) {
+  const { settings } = AppSettings();
+  const { delBudget } = Budgets();
   return (
     <TouchableOpacity activeOpacity={0.5} onPress={callback} className="mx-4">
       <LinearGradient
@@ -31,33 +34,127 @@ function BudgetCard({ name, value, callback }) {
             color="white"
             style={{ fontSize: 45, fontFamily: "Jose-Regular" }}
           >
-            {value}$
+            {getFriendlyFormat(parseFloat(value))} {settings.currency}
           </Text>
           <Text color="white" p>
             {name}
           </Text>
         </View>
+        <Button
+          icon="delete"
+          iconFamily="antdesign"
+          iconSize={12}
+          color="grey"
+          className="self-end"
+          iconColor="#6934BF"
+          onPress={() => {
+            delBudget(budgetID);
+          }}
+          onlyIcon
+        ></Button>
       </LinearGradient>
     </TouchableOpacity>
   );
 }
 
 function TransacsCard({ data, navigation, budgetID }) {
+  const [filterBy, setFilterBy] = useState(null);
+  const { settings } = AppSettings();
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState(90);
+  const filterObj = {
+    "This Month": (__data) =>
+      __data.filter(
+        (v) => new Date(v.date).getMonth() === new Date().getMonth()
+      ),
+    "This Day": (__data) =>
+      __data.filter((v) => new Date(v.date).getDay() === new Date().getDay()),
+    "This Week": (__data) =>
+      __data.filter(
+        (v) => new Date(v.date).getDay() >= new Date().getDay() - 7
+      ),
+    "This Year": (__data) =>
+      __data.filter(
+        (v) => new Date(v.date).getFullYear() === new Date().getFullYear()
+      ),
+    All: (__data) => __data,
+  };
   return (
     <View
       style={{
         backgroundColor: "white",
         width: "120%",
-        height: "73%",
+        height: "71.5%",
         paddingBottom: 20,
         borderTopLeftRadius: 50,
         borderTopRightRadius: 50,
       }}
       className="self-center"
     >
+      <DropDownPicker
+        style={{
+          borderWidth: 0,
+          borderBottomWidth: 1,
+          borderColor: "#6934BF",
+          width: "80%",
+          marginTop: 5,
+          alignSelf: "center",
+        }}
+        containerStyle={{
+          zIndex: 1000,
+          borderWidth: 0,
+          borderColor: "white",
+        }}
+        textStyle={{ color: "#6934BF", fontSize: 15, borderWidth: 0 }}
+        dropDownContainerStyle={{
+          color: "#6934BF",
+          borderWidth: 0,
+          backgroundColor: "white",
+          paddingBottom: 5,
+          width: "80%",
+          alignSelf: "center",
+        }}
+        listItemContainerStyle={{
+          backgroundColor: "rgba(0,0,0,0.05)",
+          paddingHorizontal: 2,
+          paddingVertical: 2,
+          borderRadius: 5,
+          marginTop: 2,
+          zIndex: 1000,
+          width: "98%",
+          alignSelf: "center",
+        }}
+        open={open}
+        value={value}
+        setOpen={setOpen}
+        setValue={setValue}
+        onSelectItem={(s) => setFilterBy(s["label"])}
+        items={[
+          {
+            label: "This Day",
+            value: new Date().getDay(),
+          },
+          {
+            label: "This Week",
+            value: 50,
+          },
+          {
+            label: "This Month",
+            value: new Date().getMonth(),
+          },
+          {
+            label: "This Year",
+            value: new Date().getFullYear(),
+          },
+          {
+            label: "All",
+            value: 90,
+          },
+        ]}
+      />
       <View style={{ width: "100%", height: "81%", marginTop: 20 }}>
         <FlatList
-          data={data}
+          data={filterBy === null ? data : filterObj[filterBy](data)}
           contentContainerStyle={{ gap: 25 }}
           renderItem={({ item, index }) => {
             return (
@@ -65,16 +162,16 @@ function TransacsCard({ data, navigation, budgetID }) {
                 text={item.name}
                 desc={item.desc}
                 amount={item.value}
-                unit="$"
+                unit={settings.currency}
                 callback={() =>
                   navigation.navigate("Budget", {
                     name: item.name,
                     budgetID: budgetID,
                     description: item.desc,
-                    category: "qsd",
+                    category: item.category,
                     amount: item.value,
                     date: item.date,
-                    tr_idx: index
+                    tr_idx: index,
                   })
                 }
               />
@@ -89,10 +186,11 @@ function TransacsCard({ data, navigation, budgetID }) {
 export default function Home({ route, navigation }) {
   const { budgets } = Budgets();
   const [budgetID, setBudgetID] = useState(0);
-  const { goals } = Goals();
 
   const firstTime = budgets === null || budgets.length === 0;
-  const dontHaveTransacs = !firstTime ? budgets[budgetID].transactions.length === 0: true;
+  const dontHaveTransacs = !firstTime
+    ? budgets[budgetID].transactions.length === 0
+    : true;
 
   return (
     <View
@@ -134,14 +232,13 @@ export default function Home({ route, navigation }) {
                 renderItem={({ item }) => (
                   <BudgetCard
                     name={item.name}
-                    value={parseInt(item.value)}
+                    budgetID={budgetID}
+                    value={parseFloat(item.newvalue)}
                     callback={() =>
                       navigation.navigate("Audit", {
                         budgetID: budgetID,
                         budget: budgets[budgetID],
-                        name: item.name,
                         value: item.value,
-                        goals: goals.filter((i) => i.budget_idx === budgetID),
                       })
                     }
                   />
@@ -201,6 +298,7 @@ export default function Home({ route, navigation }) {
               navigation={navigation}
               route={route}
               carouselIdx={budgetID}
+              disabled={budgets.length === 0}
             />
           </View>
         </View>

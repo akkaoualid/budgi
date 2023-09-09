@@ -1,9 +1,7 @@
 import {
   StyleSheet,
   View,
-  TextInput,
   TouchableOpacity,
-  Image,
 } from "react-native";
 import { Text } from "galio-framework";
 import { AntDesign } from "@expo/vector-icons";
@@ -32,29 +30,7 @@ function getFriendlyFormat(n) {
   }
 }
 
-function BButton(props) {
-  return (
-    <TouchableOpacity
-      className="px-8 py-3 self-end rounded-full"
-      style={{ backgroundColor: "#845EC2" }}
-      onPress={props.onPress}
-      activeOpacity={0.5}
-    >
-      <Text className="font-bold text-16 capitalize" style={{ color: "white" }}>
-        {props.title}
-      </Text>
-    </TouchableOpacity>
-  );
-}
 
-function Section(props) {
-  return (
-    <View className="flex-row items-center" style={{ gap: 15 }}>
-      <Text style={props.style}>{props.title}</Text>
-      <HLine />
-    </View>
-  );
-}
 
 function ExpCard({ text, desc, amount, unit, callback }) {
   return (
@@ -93,7 +69,7 @@ function ExpCard({ text, desc, amount, unit, callback }) {
           className="p-2 px-3 self-end items-center"
         >
           <Text style={{ color: "white" }}>
-            {getFriendlyFormat(parseInt(amount))}
+            {getFriendlyFormat(parseFloat(amount))}{" "}
             {unit}
           </Text>
         </View>
@@ -101,4 +77,4 @@ function ExpCard({ text, desc, amount, unit, callback }) {
     </TouchableOpacity>
   );
 }
-export { BButton, Section, ExpCard, HLine, getFriendlyFormat };
+export { ExpCard, HLine, getFriendlyFormat };
