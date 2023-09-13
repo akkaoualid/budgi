@@ -2,9 +2,10 @@
     <img src="./budgi_logo.png" height="100em"/>
 </p>
 
-# Minimalistic Budget Tracker App written in React Native.
+# Budgi
+Minimalistic Budget Tracker App written in React Native.
 
-Demo & Devlog [here](https://oualid.me/project/budgi-app).
+Demo & Devlog [here](https://oualid.me/arena/budgi).
 
 # Tech & Libraries used
 - react native
