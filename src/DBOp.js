@@ -14,7 +14,8 @@ const Budgets = create(
               ? {
                   ...budget,
                   oldvalue: parseFloat(budget.newvalue),
-                  newvalue: parseFloat(budget.newvalue) + parseFloat(transac.value),
+                  newvalue:
+                    parseFloat(budget.newvalue) + parseFloat(transac.value),
                   transactions: [...budget.transactions, transac],
                 }
               : budget;
@@ -98,14 +99,11 @@ const Budgets = create(
   )
 );
 
-
 const AppSettings = create(
   persist(
-    (set) => ({
-      settings: {
-        currency: "USD",
-      },
-      setCurrency: async (curr) => set({ settings: { currency: curr } }),
+    (set, get) => ({
+      currency: "USD",
+      setCurrency: async (curr) => set({ currency: curr }),
     }),
     {
       name: "budgi_settings.data",

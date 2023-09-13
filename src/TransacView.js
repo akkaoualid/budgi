@@ -6,7 +6,7 @@ import { AntDesign } from "@expo/vector-icons";
 import { Budgets } from "./DBOp";
 
 export default function TransacView({ route, navigation }) {
-  const { budgetID, tr_idx, name, description, amount, date } =
+  const { budgetID, tr_idx, name, description, amount, date, category } =
     route.params;
   const { delTransac } = Budgets();
   return (
@@ -28,7 +28,7 @@ export default function TransacView({ route, navigation }) {
             size={50}
           />
         </View>
-        <Text h1 color="#6934BF" style={{ fontFamily: "Inter-Light" }}>
+        <Text h1 color="#6934BF" style={{ fontFamily: "Inter-Regular" }}>
           {amount < 0 ? "Expense" : "Income"}
         </Text>
         <View
@@ -53,6 +53,12 @@ export default function TransacView({ route, navigation }) {
             <Text color="grey">Time Issued</Text>
             <Text style={{ fontFamily: "Inter-Bold" }}>
               {new Date(date).toLocaleTimeString()}
+            </Text>
+          </View>
+          <View className="flex-row items-center w-5/6 justify-between">
+            <Text color="grey">Category</Text>
+            <Text style={{ fontFamily: "Inter-Bold" }}>
+              {category}
             </Text>
           </View>
           <View className="flex-row items-center w-5/6 justify-between mt-10">

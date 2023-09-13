@@ -139,9 +139,9 @@ export default function AddBudget({ navigation }) {
                   addBudget({
                     name: name,
                     desc: desc,
-                    value: value,
-                    oldvalue: value,
-                    newvalue: value,
+                    value: parseFloat(value),
+                    oldvalue: parseFloat(value),
+                    newvalue: parseFloat(value),
                     date: date.toISOString(),
                     transactions: [],
                     goals: [],

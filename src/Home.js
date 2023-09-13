@@ -1,7 +1,6 @@
 import { View, TouchableOpacity, FlatList, Dimensions } from "react-native";
-import DropDownPicker from "react-native-dropdown-picker";
 import { Button, Text } from "galio-framework";
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { HLine, ExpCard, getFriendlyFormat } from "./Utility";
@@ -10,8 +9,29 @@ import Carousel from "react-native-reanimated-carousel";
 import BotNav from "./BotNav";
 import { LinearGradient } from "expo-linear-gradient";
 
+function TagBox({ onPress, content, selected }) {
+  return (
+    <TouchableOpacity
+      activeOpacity={0.5}
+      className="rounded-lg items-center"
+      style={{
+        backgroundColor: selected ? "#825DBD" : "#DEDEDE",
+        width: Dimensions.get("screen").width / 4,
+      }}
+      onPress={() => onPress(content)}
+    >
+      <Text
+        className="py-2 px-2"
+        style={{ color: selected ? "white" : "black" }}
+      >
+        {content}
+      </Text>
+    </TouchableOpacity>
+  );
+}
+
 function BudgetCard({ name, value, callback, budgetID }) {
-  const { settings } = AppSettings();
+  const { currency } = AppSettings();
   const { delBudget } = Budgets();
   return (
     <TouchableOpacity activeOpacity={0.5} onPress={callback} className="mx-4">
@@ -34,7 +54,7 @@ function BudgetCard({ name, value, callback, budgetID }) {
             color="white"
             style={{ fontSize: 45, fontFamily: "Jose-Regular" }}
           >
-            {getFriendlyFormat(parseFloat(value))} {settings.currency}
+            {getFriendlyFormat(parseFloat(value))} {currency}
           </Text>
           <Text color="white" p>
             {name}
@@ -59,26 +79,29 @@ function BudgetCard({ name, value, callback, budgetID }) {
 
 function TransacsCard({ data, navigation, budgetID }) {
   const [filterBy, setFilterBy] = useState(null);
-  const { settings } = AppSettings();
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(90);
+  const [renderedData, setRenderedData] = useState([]);
+  const { currency } = AppSettings();
   const filterObj = {
-    "This Month": (__data) =>
-      __data.filter(
-        (v) => new Date(v.date).getMonth() === new Date().getMonth()
-      ),
+    All: (__data) => __data,
     "This Day": (__data) =>
       __data.filter((v) => new Date(v.date).getDay() === new Date().getDay()),
     "This Week": (__data) =>
       __data.filter(
         (v) => new Date(v.date).getDay() >= new Date().getDay() - 7
       ),
+    "This Month": (__data) =>
+      __data.filter(
+        (v) => new Date(v.date).getMonth() === new Date().getMonth()
+      ),
     "This Year": (__data) =>
       __data.filter(
         (v) => new Date(v.date).getFullYear() === new Date().getFullYear()
       ),
-    All: (__data) => __data,
   };
+  useEffect(
+    () => setRenderedData(filterBy === null ? data : filterObj[filterBy](data)),
+    [filterBy, data]
+  );
   return (
     <View
       style={{
@@ -91,78 +114,34 @@ function TransacsCard({ data, navigation, budgetID }) {
       }}
       className="self-center"
     >
-      <DropDownPicker
-        style={{
-          borderWidth: 0,
-          borderBottomWidth: 1,
-          borderColor: "#6934BF",
-          width: "80%",
-          marginTop: 5,
-          alignSelf: "center",
-        }}
-        containerStyle={{
-          zIndex: 1000,
-          borderWidth: 0,
-          borderColor: "white",
-        }}
-        textStyle={{ color: "#6934BF", fontSize: 15, borderWidth: 0 }}
-        dropDownContainerStyle={{
-          color: "#6934BF",
-          borderWidth: 0,
-          backgroundColor: "white",
-          paddingBottom: 5,
-          width: "80%",
-          alignSelf: "center",
-        }}
-        listItemContainerStyle={{
-          backgroundColor: "rgba(0,0,0,0.05)",
-          paddingHorizontal: 2,
-          paddingVertical: 2,
-          borderRadius: 5,
-          marginTop: 2,
-          zIndex: 1000,
-          width: "98%",
-          alignSelf: "center",
-        }}
-        open={open}
-        value={value}
-        setOpen={setOpen}
-        setValue={setValue}
-        onSelectItem={(s) => setFilterBy(s["label"])}
-        items={[
-          {
-            label: "This Day",
-            value: new Date().getDay(),
-          },
-          {
-            label: "This Week",
-            value: 50,
-          },
-          {
-            label: "This Month",
-            value: new Date().getMonth(),
-          },
-          {
-            label: "This Year",
-            value: new Date().getFullYear(),
-          },
-          {
-            label: "All",
-            value: 90,
-          },
-        ]}
-      />
-      <View style={{ width: "100%", height: "81%", marginTop: 20 }}>
+      <View className="py-5 px-5">
         <FlatList
-          data={filterBy === null ? data : filterObj[filterBy](data)}
+          keyExtractor={(item) => item}
+          data={Object.keys(filterObj)}
+          renderItem={({ item }) => (
+            <TagBox
+              content={item}
+              onPress={(i) => setFilterBy(i)}
+              selected={item === filterBy}
+            />
+          )}
           contentContainerStyle={{ gap: 25 }}
+          showsHorizontalScrollIndicator={false}
+          horizontal
+        />
+      </View>
+      <View style={{ width: "100%", height: "75%", marginTop: 20 }}>
+        <FlatList
+          contentContainerStyle={{ gap: 25 }}
+          data={renderedData}
+          keyExtractor={(item, index) => index + item.date}
           renderItem={({ item, index }) => {
             return (
               <ExpCard
                 text={item.name}
                 desc={item.desc}
                 amount={item.value}
-                unit={settings.currency}
+                unit={currency}
                 callback={() =>
                   navigation.navigate("Budget", {
                     name: item.name,
@@ -184,10 +163,10 @@ function TransacsCard({ data, navigation, budgetID }) {
 }
 
 export default function Home({ route, navigation }) {
-  const { budgets } = Budgets();
   const [budgetID, setBudgetID] = useState(0);
+  const { budgets } = Budgets();
 
-  const firstTime = budgets === null || budgets.length === 0;
+  const firstTime = budgets === undefined || budgets.length === 0;
   const dontHaveTransacs = !firstTime
     ? budgets[budgetID].transactions.length === 0
     : true;
@@ -263,7 +242,7 @@ export default function Home({ route, navigation }) {
               </View>
             ) : (
               <TransacsCard
-                data={budgets[budgetID].transactions}
+                data={budgets[budgetID].transactions || []}
                 navigation={navigation}
                 budgetID={budgetID}
               />

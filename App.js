@@ -27,7 +27,6 @@ export default function App() {
   useFonts({
     "Inter-Bold": require("./assets/Inter-Bold.ttf"),
     "Inter-Regular": require("./assets/Inter-Regular.ttf"),
-    "Inter-Light": require("./assets/Inter-Light.ttf"),
     "Jose-Regular": require("./assets/JosefinSans-Regular.ttf"),
   });
   return (

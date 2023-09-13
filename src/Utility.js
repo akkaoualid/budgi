@@ -22,11 +22,11 @@ function getFriendlyFormat(n) {
   if (n < 1000) {
     return n;
   } else if (n >= 1000 && n < 1_000_000) {
-    return (n / 1000).toFixed(1) + "K";
+    return (n / 1000).toFixed(2) + "K";
   } else if (n >= 1_000_000 && n < 1_000_000_000) {
-    return (n / 1_000_000).toFixed(1) + "M";
+    return (n / 1_000_000).toFixed(2) + "M";
   } else if (n >= 1_000_000_000) {
-    return (n / 1_000_000_000).toFixed(1) + "B+";
+    return (n / 1_000_000_000).toFixed(2) + "B+";
   }
 }
 
@@ -77,4 +77,4 @@ function ExpCard({ text, desc, amount, unit, callback }) {
     </TouchableOpacity>
   );
 }
-export { ExpCard, HLine, getFriendlyFormat };
+export {  ExpCard, HLine, getFriendlyFormat };

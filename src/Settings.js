@@ -7,7 +7,7 @@ import { useState } from "react";
 import { AppSettings } from "./DBOp";
 
 export default function Settings() {
-  const { settings, setCurrency } = AppSettings();
+  const { currency, setCurrency } = AppSettings();
   const [showFaq, setShowFaq] = useState(false);
   const [curr, setCurr] = useState("");
   const faqs = [
@@ -83,7 +83,7 @@ export default function Settings() {
           <View style={{ gap: 10 }}>
             <Text
               color="#6934BF"
-              style={{ fontFamily: "Inter-Light", fontSize: 20 }}
+              style={{ fontFamily: "Inter-Regular", fontSize: 20 }}
             >
               Data Settings
             </Text>
@@ -92,7 +92,7 @@ export default function Settings() {
               style={{ backgroundColor: "white" }}
             >
               <Input
-                placeholder={`Currency (current: ${settings.currency})`}
+                placeholder={`Currency (current: ${currency})`}
                 style={{
                   backgroundColor: "rgba(0,0,0,0)",
                   color: "white",
@@ -104,24 +104,6 @@ export default function Settings() {
               <Button className="self-center" onPress={() => setCurrency(curr)}>
                 Save.
               </Button>
-              <View className="flex-row items-center self-center">
-                <Button
-                  icon="upload"
-                  iconFamily="antdesign"
-                  iconColor="white"
-                  style={{ width: 150 }}
-                >
-                  Export Data
-                </Button>
-                <Button
-                  style={{ width: 150 }}
-                  icon="download"
-                  iconFamily="antdesign"
-                  iconColor="white"
-                >
-                  Import Data
-                </Button>
-              </View>
               <Button
                 icon="delete"
                 iconFamily="antdesign"
@@ -136,7 +118,7 @@ export default function Settings() {
           <View style={{ gap: 10 }}>
             <Text
               color="#6934BF"
-              style={{ fontFamily: "Inter-Light", fontSize: 20 }}
+              style={{ fontFamily: "Inter-Regular", fontSize: 20 }}
             >
               Support
             </Text>
