@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="./budgi_logo.png"/>
+    <img src="./budgi_logo.png" height="100em"/>
 </p>
 
 # Minimalistic Budget Tracker App written in React Native.
