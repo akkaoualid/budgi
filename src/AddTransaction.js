@@ -6,7 +6,7 @@ import { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Budgets } from "./DBOp";
 
-export default function AddTransaction({ route, navigation }) {
+export default function AddTransaction({ navigation }) {
   const [date, setDate] = useState(new Date(Date.now()));
   const [mode, setMode] = useState("date");
   const [show, setShow] = useState(false);
@@ -20,10 +20,8 @@ export default function AddTransaction({ route, navigation }) {
   const [open, setOpen] = useState(false);
   const [_value, _setValue] = useState(90);
 
-  const { budgetID } = route.params;
-
-  const { addTransac, budgets } = Budgets();
-  const categories = budgets[budgetID].categories || [];
+  const { addTransac, budgets, budgetIdx } = Budgets();
+  const categories = budgets[budgetIdx].categories || [];
   const onChange = (event, selectedDate) => {
     const currentDate = selectedDate;
     setShow(false);
@@ -128,6 +126,7 @@ export default function AddTransaction({ route, navigation }) {
           </View>
           <View className="w-full" style={{ gap: 20 }}>
             <DropDownPicker
+            placeholder="Choose a Category."
               style={{
                 borderWidth: 0,
                 zIndex: 1000,
@@ -188,7 +187,7 @@ export default function AddTransaction({ route, navigation }) {
               } else if (
                 expn &&
                 Math.abs(parseFloat(value)) >
-                  parseFloat(budgets[budgetID].newvalue)
+                  parseFloat(budgets[budgetIdx].newvalue)
               ) {
                 Alert.alert(
                   "Couldn't add transaction",
@@ -201,7 +200,7 @@ export default function AddTransaction({ route, navigation }) {
                     `the value you supplied "${value}" is invalid`
                   );
                 } else {
-                  addTransac(budgetID, {
+                  addTransac(budgetIdx, {
                     name: name,
                     desc: desc,
                     value: expn

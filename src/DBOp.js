@@ -6,6 +6,8 @@ const Budgets = create(
   persist(
     (set, get) => ({
       budgets: [],
+      budgetIdx: 0,
+      setBudgetIdx: async (idx) => set({ ...get().budgets, budgetIdx: idx }),
       addBudget: async (budget) => set({ budgets: [...get().budgets, budget] }),
       addTransac: async (budget_idx, transac) => {
         set({
@@ -87,13 +89,16 @@ const Budgets = create(
           ),
         });
       },
-      delBudget: async (idx) =>
+      delBudget: async (idx) => {
         set({
           budgets: get().budgets.filter((_, i) => !(idx === i)),
-        }),
+          budgetIdx: idx === 0 ? 0 : idx - 1
+        });
+      },
+      purgeAll: async() => set({budgets: [], budgetIdx: 0})
     }),
     {
-      name: "budgi_budgets.data",
+      name: "budgi_budget.data",
       storage: createJSONStorage(() => AsyncStorage),
     }
   )

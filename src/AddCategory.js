@@ -5,8 +5,7 @@ import { Budgets } from "./DBOp";
 import { useState } from "react";
 
 export default function AddCategory({ navigation, route }) {
-  const { budgetID } = route.params;
-  const { addCat } = Budgets();
+  const { addCat, budgetIdx } = Budgets();
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
   return (
@@ -33,7 +32,7 @@ export default function AddCategory({ navigation, route }) {
                   "plz fill the blanks before adding anything smh."
                 );
               } else {
-                addCat(budgetID, {
+                addCat(budgetIdx, {
                   name: name,
                   desc: desc,
                   date: new Date().toISOString(),

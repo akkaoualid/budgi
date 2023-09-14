@@ -30,9 +30,9 @@ function TagBox({ onPress, content, selected }) {
   );
 }
 
-function BudgetCard({ name, value, callback, budgetID }) {
+function BudgetCard({ name, value, callback }) {
   const { currency } = AppSettings();
-  const { delBudget } = Budgets();
+  const { delBudget, budgetIdx } = Budgets();
   return (
     <TouchableOpacity activeOpacity={0.5} onPress={callback} className="mx-4">
       <LinearGradient
@@ -45,7 +45,7 @@ function BudgetCard({ name, value, callback, budgetID }) {
           className="items-center"
           style={{
             gap: 20,
-            paddingHorizontal: 40,
+            paddingHorizontal: 30,
             paddingVertical: 20,
             borderRadius: 20,
           }}
@@ -68,7 +68,7 @@ function BudgetCard({ name, value, callback, budgetID }) {
           className="self-end"
           iconColor="#6934BF"
           onPress={() => {
-            delBudget(budgetID);
+            delBudget(budgetIdx);
           }}
           onlyIcon
         ></Button>
@@ -77,22 +77,46 @@ function BudgetCard({ name, value, callback, budgetID }) {
   );
 }
 
-function TransacsCard({ data, navigation, budgetID }) {
+function TransacsCard({ data, navigation, budgetIdx }) {
   const [filterBy, setFilterBy] = useState(null);
   const [renderedData, setRenderedData] = useState([]);
   const { currency } = AppSettings();
   const filterObj = {
     All: (__data) => __data,
-    "This Day": (__data) =>
-      __data.filter((v) => new Date(v.date).getDay() === new Date().getDay()),
-    "This Week": (__data) =>
-      __data.filter(
-        (v) => new Date(v.date).getDay() >= new Date().getDay() - 7
-      ),
-    "This Month": (__data) =>
-      __data.filter(
-        (v) => new Date(v.date).getMonth() === new Date().getMonth()
-      ),
+    "This Day": (__data) => {
+      let currMonth = new Date().getMonth();
+      let currYear = new Date().getFullYear();
+      let currDay = new Date().getDate();
+      return __data.filter((v) => {
+        let date = new Date(v.date);
+        return (
+          date.getDate() === currDay &&
+          date.getFullYear() === currYear &&
+          date.getMonth() === currMonth
+        );
+      });
+    },
+    "This Week": (__data) => {
+      let currMonth = new Date().getMonth();
+      let currYear = new Date().getFullYear();
+      let _7Days = new Date().getDate() - 7;
+      return __data.filter((v) => {
+        let date = new Date(v.date);
+        return (
+          date.getDate() >= _7Days &&
+          date.getFullYear() === currYear &&
+          date.getMonth() === currMonth
+        );
+      });
+    },
+    "This Month": (__data) => {
+      let currMonth = new Date().getMonth();
+      let currYear = new Date().getFullYear();
+      return __data.filter((v) => {
+        let date = new Date(v.date);
+        return date.getFullYear() === currYear && date.getMonth() === currMonth;
+      });
+    },
     "This Year": (__data) =>
       __data.filter(
         (v) => new Date(v.date).getFullYear() === new Date().getFullYear()
@@ -107,7 +131,7 @@ function TransacsCard({ data, navigation, budgetID }) {
       style={{
         backgroundColor: "white",
         width: "120%",
-        height: "71.5%",
+        height: "72%",
         paddingBottom: 20,
         borderTopLeftRadius: 50,
         borderTopRightRadius: 50,
@@ -145,7 +169,7 @@ function TransacsCard({ data, navigation, budgetID }) {
                 callback={() =>
                   navigation.navigate("Budget", {
                     name: item.name,
-                    budgetID: budgetID,
+                    budgetIdx: budgetIdx,
                     description: item.desc,
                     category: item.category,
                     amount: item.value,
@@ -163,13 +187,13 @@ function TransacsCard({ data, navigation, budgetID }) {
 }
 
 export default function Home({ route, navigation }) {
-  const [budgetID, setBudgetID] = useState(0);
-  const { budgets } = Budgets();
+  const { budgets, budgetIdx, setBudgetIdx } = Budgets();
 
   const firstTime = budgets === undefined || budgets.length === 0;
-  const dontHaveTransacs = !firstTime
-    ? budgets[budgetID].transactions.length === 0
-    : true;
+  const dontHaveTransacs =
+    !firstTime && budgetIdx !== null
+      ? budgets[budgetIdx].transactions.length === 0
+      : true;
 
   return (
     <View
@@ -202,24 +226,18 @@ export default function Home({ route, navigation }) {
               <Carousel
                 loop={false}
                 style={{ gap: 50 }}
-                defaultIndex={budgetID}
+                defaultIndex={budgetIdx}
                 width={Dimensions.get("window").width - 20}
                 height={Dimensions.get("window").width / 2}
                 data={budgets}
                 scrollAnimationDuration={100}
-                onSnapToItem={(index) => setBudgetID(index)}
+                onSnapToItem={(index) => setBudgetIdx(index)}
                 renderItem={({ item }) => (
                   <BudgetCard
                     name={item.name}
-                    budgetID={budgetID}
+                    budgetIdx={budgetIdx}
                     value={parseFloat(item.newvalue)}
-                    callback={() =>
-                      navigation.navigate("Audit", {
-                        budgetID: budgetID,
-                        budget: budgets[budgetID],
-                        value: item.value,
-                      })
-                    }
+                    callback={() => navigation.navigate("Audit")}
                   />
                 )}
               />
@@ -232,7 +250,7 @@ export default function Home({ route, navigation }) {
                 <Button
                   onPress={() =>
                     navigation.navigate("AddTransac", {
-                      budgetID: budgetID,
+                      budgetIdx: budgetIdx,
                     })
                   }
                   shadowColor="#6934BF"
@@ -242,9 +260,9 @@ export default function Home({ route, navigation }) {
               </View>
             ) : (
               <TransacsCard
-                data={budgets[budgetID].transactions || []}
+                data={budgets[budgetIdx].transactions || []}
                 navigation={navigation}
-                budgetID={budgetID}
+                budgetIdx={budgetIdx}
               />
             )
           ) : (
@@ -276,7 +294,7 @@ export default function Home({ route, navigation }) {
             <BotNav
               navigation={navigation}
               route={route}
-              carouselIdx={budgetID}
+              carouselIdx={budgetIdx}
               disabled={budgets.length === 0}
             />
           </View>

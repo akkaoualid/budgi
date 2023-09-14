@@ -1,13 +1,14 @@
-import { View, Modal, Dimensions, Linking } from "react-native";
+import { View, Modal, Dimensions, Linking, Alert } from "react-native";
 import { Text, Input, Button } from "galio-framework";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Accordion, Block } from "galio-framework";
 import { BlurView } from "expo-blur";
 import { useState } from "react";
-import { AppSettings } from "./DBOp";
+import { AppSettings, Budgets } from "./DBOp";
 
 export default function Settings() {
   const { currency, setCurrency } = AppSettings();
+  const { purgeAll } = Budgets();
   const [showFaq, setShowFaq] = useState(false);
   const [curr, setCurr] = useState("");
   const faqs = [
@@ -109,6 +110,18 @@ export default function Settings() {
                 iconFamily="antdesign"
                 iconColor="white"
                 className="self-center"
+                onPress={() => {
+                  Alert.alert("u sure ?", "YOU SURE ??????????????", [
+                    {
+                      text: "YESYEYSYEYEYSYYEYYEYSYEYSY",
+                      onPress: () => purgeAll(),
+                    },
+                    {
+                      text: "NONONONONONONONNONONON",
+                      style: "cancel",
+                    },
+                  ]);
+                }}
                 style={{ width: 150 }}
               >
                 Reset Data
@@ -144,7 +157,7 @@ export default function Settings() {
                 color="grey"
                 onPress={async () =>
                   await Linking.openURL(
-                    "https://oualid.me/projects/budget-app#report-bug"
+                    "https://oualid.me/arena/budgi#report-bug"
                   )
                 }
               >

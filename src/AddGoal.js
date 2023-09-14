@@ -4,9 +4,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Budgets } from "./DBOp";
 import { useState } from "react";
 
-export default function AddGoal({ route, navigation }) {
-  const { budget_idx } = route.params;
-  const { addGoal } = Budgets();
+export default function AddGoal({ navigation }) {
+  const { addGoal, budgetIdx } = Budgets();
   const [name, setName] = useState("");
   const [value, setValue] = useState(0);
   return (
@@ -36,7 +35,7 @@ export default function AddGoal({ route, navigation }) {
                 if (value < 0) {
                   Alert.alert("huh?", "negative goal 💀");
                 } else {
-                  addGoal(budget_idx, {
+                  addGoal(budgetIdx, {
                     name: name,
                     value: parseFloat(value),
                     date: new Date().toISOString(),

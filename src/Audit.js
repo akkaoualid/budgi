@@ -2,108 +2,16 @@ import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text, Button } from "galio-framework";
 import { Dimensions } from "react-native";
-import {
-  BarChart,
-  CurveType,
-  LineChart,
-} from "react-native-gifted-charts";
+import { BarChart, CurveType, LineChart } from "react-native-gifted-charts";
 import { Budgets, AppSettings } from "./DBOp";
 import { getFriendlyFormat } from "./Utility";
 import Carousel from "react-native-reanimated-carousel";
 import { AntDesign } from "@expo/vector-icons";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 const screenWidth = Dimensions.get("window").width;
-const screenHeight = Dimensions.get("window").height;
 
-// get all categories and calculate the percentage by their occurence
-function getCategoryPercentage(transacs) {
-  let data = { labels: [], data: [] };
-  let labels = transacs.map((v) => v.category).flat();
-  let occ = {};
-  labels.forEach((v) => {
-    let temp = occ[v];
-    occ[v] = temp === undefined ? 1 : temp + 1;
-  });
-  Object.keys(occ).forEach((i) => (occ[i] = occ[i] / labels.length));
-  data.labels = Object.keys(occ);
-  data.data = Object.values(occ);
-  return data;
-}
-
-function getBudgetVariation(transacs) {
-  const byDate = {};
-  transacs.forEach((v, _) => {
-    const _date = new Date(v.date).toLocaleDateString();
-    const temp = byDate[_date];
-    byDate[_date] =
-      temp === undefined ? parseFloat(v.value) : temp + parseFloat(v.value);
-  });
-
-  return {
-    labels: Object.keys(byDate),
-    datasets: [{ data: Object.values(byDate) }],
-  };
-}
-function RenderCategoriesByProfit({ transacs, newvalue }) {
-  let profit = {};
-  transacs.forEach((v) => {
-    profit[v.category] = 0;
-  });
-
-  for (let i = 0; i < transacs.length; ++i) {
-    let value = parseFloat(transacs[i].value);
-    let category = transacs[i].category;
-    if (value < 0) continue;
-    else profit[category] += value;
-  }
-
-  const barData = Object.keys(profit)
-    .map((v) => {
-      return [
-        {
-          value: 100 - ((newvalue - profit[v]) / newvalue) * 100,
-          labelTextStyle: {
-            color: "#6934BF",
-            textTransform: "capitalize",
-          },
-          frontColor: "#6934BF",
-          label: v,
-        },
-      ];
-    })
-    .flat();
-  // {
-  //   value: 40,
-  //   label: 'Jan',
-  //   spacing: 2,
-  //   labelWidth: 30,
-  //   labelTextStyle: {color: 'gray'},
-  //   frontColor: '#177AD5',
-  // },
-  // {value: 20, frontColor: '#ED6665'},
-  return (
-    <View>
-      <BarChart
-        rotateLabel
-        data={barData}
-        barWidth={16}
-        spacing={35}
-        width={screenWidth / 1.4}
-        height={screenHeight / 5}
-        barBorderRadius={5}
-        yAxisLabelSuffix={"%"}
-        xAxisThickness={0}
-        yAxisThickness={0}
-        yAxisTextStyle={{ color: "#6934BF" }}
-        isAnimated
-        hideRules
-      />
-    </View>
-  );
-}
-
-function categoriesByProfitLoss(transacs, newvalue) {
+function categoriesByProfitLoss(transacs, newvalue, isExpn) {
   let loss = {};
   let profit = {};
   transacs.forEach((v) => {
@@ -117,40 +25,41 @@ function categoriesByProfitLoss(transacs, newvalue) {
     if (value < 0) loss[category] += Math.abs(value);
     else profit[category] += value;
   }
-
-  const PROFIT_COLOR = "#6934BF";
-  const LOSS_COLOR = "#9987B5";
   const barData = Object.keys(profit)
     .map((v) => {
       return [
         {
-          value: 100 - ((newvalue - profit[v]) / newvalue) * 100,
+          value:
+            100 -
+            ((newvalue - (isExpn ? loss[v] : profit[v])) / newvalue) * 100,
           label: v,
-          spacing: 20,
           labelTextStyle: {
             color: "#6934BF",
             textTransform: "capitalize",
-            width: screenWidth / 5,
             top: 0,
           },
-          frontColor: PROFIT_COLOR,
-        },
-        {
-          value: 100 - ((newvalue - loss[v]) / newvalue) * 100,
-          frontColor: LOSS_COLOR,
+          topLabelComponent: () => (
+            <Text
+              style={{
+                width: "300%",
+                alignSelf: "center",
+                fontSize: 12,
+                height: 25,
+                color: "#6934BF",
+              }}
+            >
+              {(
+                100 -
+                ((newvalue - (isExpn ? loss[v] : profit[v])) / newvalue) * 100
+              ).toFixed(2)}
+              %
+            </Text>
+          ),
+          frontColor: "#6934BF",
         },
       ];
     })
     .flat();
-  // {
-  //   value: 40,
-  //   label: 'Jan',
-  //   spacing: 2,
-  //   labelWidth: 30,
-  //   labelTextStyle: {color: 'gray'},
-  //   frontColor: '#177AD5',
-  // },
-  // {value: 20, frontColor: '#ED6665'},
   return barData;
 }
 
@@ -168,32 +77,42 @@ function getThisWeek(transacs) {
   }
 
   transacs.forEach((v) => {
-    let transacDate = new Date(v.date);
-    if (transacDate.getDate() >= currDay - 7) {
-      let value = parseFloat(v.value);
-      let day = transacDate.getDate();
-      if (value < 0) {
-        loss[day] += Math.abs(value);
-      } else {
-        profit[day] += value;
+    let date = new Date(v.date);
+    if (
+      date.getDate() >= currDay - 7 &&
+      currMonth === date.getMonth() &&
+      currYear === date.getFullYear()
+      ) {
+        let value = parseFloat(v.value);
+        let day = date.getDate();
+        if (value < 0) {
+          loss[day] += Math.abs(value);
+        } else {
+          profit[day] += value;
+        }
       }
-    }
-  });
-
-  let thisWeekProfit = Object.keys(profit).map((v) => {
-    return {
-      label: v,
-      value: parseFloat(profit[v]),
+    });
+    
+    let thisWeekMax = Math.max(
+      Object.values(loss).reduce((a, b) => a + b, 0),
+      Object.values(profit).reduce((a, b) => a + b, 0)
+    );
+    let thisWeekProfit = Object.keys(profit).map((v) => {
+      return {
+        label: v,
+        dataPointText: getFriendlyFormat(parseFloat(profit[v])),
+        value: parseFloat(profit[v]),
     };
   });
   let thisWeekLoss = Object.keys(loss).map((v) => {
     return {
       label: v,
+      dataPointText: getFriendlyFormat(parseFloat(loss[v])),
       value: parseFloat(loss[v]),
     };
   });
 
-  return { thisWeekProfit, thisWeekLoss };
+  return { thisWeekProfit, thisWeekLoss, thisWeekMax };
 }
 
 function getThisDay(transacs) {
@@ -210,29 +129,41 @@ function getThisDay(transacs) {
   }
 
   transacs.forEach((v) => {
-    let date = new Date(v.date).getHours();
-    if (date >= currHour - 24) {
+    let date = new Date(v.date);
+    if (
+      date.getHours() >= currHour - 24 &&
+      currDay === date.getDate() &&
+      currMonth === date.getMonth() &&
+      currYear === date.getFullYear()
+    ) {
       let value = parseFloat(v.value);
       if (value < 0) {
-        loss[date] += Math.abs(value);
+        loss[date.getHours()] += Math.abs(value);
       } else {
-        profit[date] += value;
+        profit[date.getHours()] += value;
       }
     }
   });
+  let thisDayMax = Math.max(
+    Object.values(loss).reduce((a, b) => a + b, 0),
+    Object.values(profit).reduce((a, b) => a + b, 0)
+  );
   let thisDayProfit = Object.keys(profit).map((v) => {
     return {
       label: v,
+      dataPointText: getFriendlyFormat(parseFloat(profit[v])),
       value: parseFloat(profit[v]),
     };
   });
   let thisDayLoss = Object.keys(loss).map((v) => {
     return {
+      label: v,
+      dataPointText: getFriendlyFormat(parseFloat(loss[v])),
       value: parseFloat(loss[v]),
     };
   });
 
-  return { thisDayProfit, thisDayLoss };
+  return { thisDayProfit, thisDayLoss, thisDayMax };
 }
 
 function getThisMonth(transacs) {
@@ -248,28 +179,38 @@ function getThisMonth(transacs) {
     loss[date] = 0;
   }
   transacs.forEach((v, i) => {
-    let date = new Date(v.date).getDate();
-    if (date >= currDay - 31) {
+    let date = new Date(v.date);
+    if (
+      (date.getDate() >= currDay - 31 && currMonth === date.getMonth()) ||
+      (currMonth === date.getMonth() - 1 && currYear === date.getFullYear())
+    ) {
       let value = parseFloat(v.value);
-      if (value < 0) loss[date] += Math.abs(value);
-      else profit[date] += value;
+      let day = date.getDate();
+      if (value < 0) loss[day] += Math.abs(value);
+      else profit[day] += value;
     }
   });
 
+  let thisMonthMax = Math.max(
+    Object.values(loss).reduce((a, b) => a + b, 0),
+    Object.values(profit).reduce((a, b) => a + b, 0)
+  );
   let thisMonthProfit = Object.keys(profit).map((v) => {
     return {
       label: v,
+      dataPointText: getFriendlyFormat(parseFloat(profit[v])),
       value: parseFloat(profit[v]),
     };
   });
   let thisMonthLoss = Object.keys(loss).map((v) => {
     return {
       label: v,
+      dataPointText: getFriendlyFormat(parseFloat(loss[v])),
       value: parseFloat(loss[v]),
     };
   });
 
-  return { thisMonthProfit, thisMonthLoss };
+  return { thisMonthProfit, thisMonthLoss, thisMonthMax };
 }
 
 function getThisYear(transacs) {
@@ -300,7 +241,6 @@ function getThisYear(transacs) {
     profit[monthName] = 0;
     loss[monthName] = 0;
   }
-
   transacs.forEach((v) => {
     let transacDate = new Date(v.date);
     if (transacDate.getMonth() >= currMonth - 11) {
@@ -314,33 +254,47 @@ function getThisYear(transacs) {
     }
   });
 
+  let thisYearMax = Math.max(
+    Object.values(loss).reduce((a, b) => a + b, 0),
+    Object.values(profit).reduce((a, b) => a + b, 0)
+  );
   let thisYearProfit = Object.keys(profit).map((v) => ({
     label: v.substring(0, 3),
+    dataPointText: getFriendlyFormat(parseFloat(profit[v])),
     value: profit[v],
   }));
 
   let thisYearLoss = Object.keys(loss).map((v) => ({
     label: v.substring(0, 3),
+    dataPointText: getFriendlyFormat(parseFloat(loss[v])),
     value: loss[v],
   }));
 
-  return { thisYearProfit, thisYearLoss };
+  return { thisYearProfit, thisYearLoss, thisYearMax };
 }
 
-export default function Audit({ route, navigation }) {
-  const { delGoal, delBudget } = Budgets();
+export default function Audit({ navigation }) {
+  const { delGoal, delBudget, budgetIdx, budgets } = Budgets();
   const { currency } = AppSettings();
-  const { budget, budgetID } = route.params;
+  const budget = budgets[budgetIdx];
 
   const transacs = budget.transactions;
-  const goals = Budgets().budgets[budgetID].goals || [];
+  const goals = Budgets().budgets[budgetIdx].goals || [];
   const newvalue = parseFloat(budget.newvalue);
   const oldvalue = parseFloat(budget.oldvalue);
 
-  const { thisDayProfit, thisDayLoss } = getThisDay(transacs);
-  const { thisWeekProfit, thisWeekLoss } = getThisWeek(transacs);
-  const { thisMonthProfit, thisMonthLoss } = getThisMonth(transacs);
-  const { thisYearProfit, thisYearLoss } = getThisYear(transacs);
+  const { thisDayProfit, thisDayLoss, thisDayMax } = useMemo(() =>
+    getThisDay(transacs)
+  );
+  const { thisWeekProfit, thisWeekLoss, thisWeekMax } = useMemo(() =>
+    getThisWeek(transacs)
+  );
+  const { thisMonthProfit, thisMonthLoss, thisMonthMax } = useMemo(() =>
+    getThisMonth(transacs)
+  );
+  const { thisYearProfit, thisYearLoss, thisYearMax } = useMemo(() =>
+    getThisYear(transacs)
+  );
 
   const filterByText = [
     "Categories",
@@ -351,6 +305,7 @@ export default function Audit({ route, navigation }) {
   ];
 
   const [carouselIdx, setCarouselIdx] = useState(0);
+  const [showExpn, setShowExpn] = useState(true);
 
   return (
     <SafeAreaView style={{ backgroundColor: "#E5DDF0", height: "100%" }}>
@@ -379,12 +334,7 @@ export default function Audit({ route, navigation }) {
                 color={newvalue >= oldvalue ? "green" : "red"}
                 style={{ fontSize: 10 }}
               >
-                {
-                  // we only want the profit compared to the last transaction
-
-                  (((newvalue - oldvalue) / oldvalue) * 100).toFixed(2)
-                }
-                %
+                {(((newvalue - oldvalue) / oldvalue) * 100).toFixed(2)}%
               </Text>
             </View>
             <Button
@@ -394,7 +344,7 @@ export default function Audit({ route, navigation }) {
               color="grey"
               iconColor="#6934BF"
               onPress={() => {
-                delBudget(budgetID);
+                delBudget(budgetIdx);
                 navigation.goBack();
               }}
               onlyIcon
@@ -457,21 +407,44 @@ export default function Audit({ route, navigation }) {
                 onlyIcon
               ></Button>
             </View>
-            <View className="items-center self-center py-5 mr-5">
+            <View className="flex-row items-center w-4/6">
+              <Button
+                onPress={() => setShowExpn(false)}
+                className="rounded-lg mt-2 w-20"
+                style={{
+                  backgroundColor: !showExpn ? "#6934BF" : "white",
+                }}
+              >
+                <Text color={showExpn ? "#6934BF" : "white"}>Incomes</Text>
+              </Button>
+              <Button
+                onPress={() => setShowExpn(true)}
+                className="rounded-lg mt-2 ml-2 w-20"
+                style={{
+                  backgroundColor: showExpn ? "#6934BF" : "white",
+                }}
+              >
+                <Text color={!showExpn ? "#6934BF" : "white"}>Expeneses</Text>
+              </Button>
+            </View>
+            <View className="flex-column items-center self-center py-5 w-full">
               {
                 [
                   <BarChart
-                    data={categoriesByProfitLoss(transacs, newvalue)}
+                    data={categoriesByProfitLoss(transacs, newvalue, showExpn)}
                     barWidth={16}
-                    spacing={40}
-                    width={screenWidth / 1.5}
+                    spacing={50}
                     barBorderRadius={5}
                     hideRules
                     yAxisLabelSuffix={"%"}
                     xAxisThickness={0}
                     yAxisThickness={0}
+                    maxValue={120}
+                    width={screenWidth / 1.2}
+                    hideYAxisText
                     yAxisTextStyle={{ color: "#6934BF" }}
                     rulesColor="#6934BF"
+                    isAnimated
                   />,
                   <LineChart
                     spacing={20}
@@ -479,18 +452,21 @@ export default function Audit({ route, navigation }) {
                     yAxisTextStyle={{ color: "#6934BF" }}
                     rulesColor="#9987B5"
                     verticalLinesColor="#9987B5"
-                    data={thisDayProfit}
-                    color1="#6934BF"
-                    data2={thisDayLoss}
-                    color2="white"
-                    dataPointsColor1="#6934BF"
-                    dataPointsColor2="white"
+                    data={showExpn ? thisDayLoss : thisDayProfit}
+                    color="#6934BF"
+                    maxValue={thisDayMax + thisDayMax / 10}
+                    scrollToIndex={new Date().getHours() - 5}
+                    dataPointsColor="#6934BF"
                     hideRules
-                    showValuesAsDataPointsText
-                    width={screenWidth / 1.4}
+                    width={screenWidth / 1.2}
                     curveType={CurveType.QUADRATIC}
                     curved
+                    hideYAxisText
                     yAxisThickness={0}
+                    dataPointsHeight={20}
+                    dataPointsWidth1={20}
+                    textFontSize={13}
+                    textColor="black"
                     xAxisThickness={0}
                   />,
                   <LineChart
@@ -499,18 +475,22 @@ export default function Audit({ route, navigation }) {
                     yAxisTextStyle={{ color: "#6934BF" }}
                     rulesColor="#9987B5"
                     verticalLinesColor="#9987B5"
-                    data={thisWeekProfit}
+                    data={showExpn ? thisWeekLoss : thisWeekProfit}
+                    maxValue={thisWeekMax + thisWeekMax / 10}
                     color1="#6934BF"
-                    data2={thisWeekLoss}
-                    color2="white"
+                    scrollToIndex={new Date().getDate() - 5}
                     hideRules
                     dataPointsColor1="#6934BF"
-                    dataPointsColor2="white"
                     curveType={CurveType.QUADRATIC}
-                    width={screenWidth / 1.4}
+                    width={screenWidth / 1.2}
                     curved
                     yAxisThickness={0}
                     xAxisThickness={0}
+                    dataPointsHeight={20}
+                    dataPointsWidth1={20}
+                    textFontSize={13}
+                    textColor="black"
+                    hideYAxisText
                   />,
 
                   <LineChart
@@ -518,18 +498,21 @@ export default function Audit({ route, navigation }) {
                     xAxisLabelTextStyle={{ color: "#6934BF" }}
                     yAxisTextStyle={{ color: "#6934BF" }}
                     rulesColor="#9987B5"
+                    data={showExpn ? thisMonthLoss : thisMonthProfit}
                     verticalLinesColor="#9987B5"
-                    data={thisMonthProfit}
                     color1="#6934BF"
-                    data2={thisMonthLoss}
-                    color2="white"
+                    maxValue={thisMonthMax + thisMonthMax / 10}
                     dataPointsColor1="#6934BF"
-                    dataPointsColor2="white"
+                    scrollToIndex={new Date().getDate() - 5}
                     hideRules
-                    showValuesAsDataPointsText
-                    width={screenWidth / 1.4}
+                    width={screenWidth / 1.2}
                     curveType={CurveType.QUADRATIC}
                     curved
+                    dataPointsHeight={20}
+                    dataPointsWidth1={20}
+                    textFontSize={13}
+                    textColor="black"
+                    hideYAxisText
                     yAxisThickness={0}
                     xAxisThickness={0}
                   />,
@@ -539,17 +522,21 @@ export default function Audit({ route, navigation }) {
                     yAxisTextStyle={{ color: "#6934BF" }}
                     rulesColor="#9987B5"
                     verticalLinesColor="#9987B5"
-                    data={thisYearProfit}
+                    data={showExpn ? thisYearLoss : thisYearProfit}
                     color1="#6934BF"
-                    data2={thisYearLoss}
-                    color2="white"
+                    scrollToIndex={new Date().getMonth()}
+                    maxValue={thisYearMax + thisYearMax / 10}
                     dataPointsColor1="#6934BF"
                     dataPointsColor2="white"
                     hideRules
-                    showValuesAsDataPointsText
-                    width={screenWidth / 1.4}
+                    width={screenWidth / 1.2}
                     curveType={CurveType.QUADRATIC}
                     curved
+                    hideYAxisText
+                    dataPointsHeight={20}
+                    dataPointsWidth={20}
+                    textFontSize={13}
+                    textColor="black"
                     yAxisThickness={0}
                     xAxisThickness={0}
                   />,
@@ -620,9 +607,7 @@ export default function Audit({ route, navigation }) {
                                 100
                             }%`,
                     }}
-                  >
-                    
-                  </View>
+                  ></View>
                 </View>
                 <View
                   className="flex-row w-full"
@@ -638,7 +623,7 @@ export default function Audit({ route, navigation }) {
                 <Button
                   color="white"
                   style={{ width: 70, height: 30 }}
-                  onPress={() => delGoal(budgetID, index)}
+                  onPress={() => delGoal(budgetIdx, index)}
                 >
                   <Text color="#6934BF" style={{ fontSize: 12 }}>
                     DELETE

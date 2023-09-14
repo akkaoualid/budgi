@@ -37,8 +37,6 @@ function SectionOpt({ icon, callback, text }) {
 
 export default function BotNav({
   navigation,
-  route,
-  carouselIdx,
   disabled,
 }) {
   const [pops, showPop] = useState(false);
@@ -82,9 +80,7 @@ export default function BotNav({
                   icon={<FontAwesome name="money" size={24} color="white" />}
                   callback={() => {
                     showPop(false);
-                    navigation.navigate("AddTransac", {
-                      budgetID: carouselIdx,
-                    });
+                    navigation.navigate("AddTransac");
                   }}
                 />
                 <SectionOpt
@@ -107,9 +103,7 @@ export default function BotNav({
                   }
                   callback={() => {
                     showPop(false);
-                    navigation.navigate("AddCat", {
-                      budgetID: carouselIdx,
-                    });
+                    navigation.navigate("AddCat");
                   }}
                 />
                 <SectionOpt
@@ -117,9 +111,7 @@ export default function BotNav({
                   icon={<Feather name="flag" size={24} color="white" />}
                   callback={() => {
                     showPop(false);
-                    navigation.navigate("AddGoal", {
-                      budget_idx: carouselIdx,
-                    });
+                    navigation.navigate("AddGoal");
                   }}
                 />
               </View>
@@ -134,7 +126,7 @@ export default function BotNav({
             name="home"
             family="antdesign"
             size={30}
-            color={route.name === "Home" ? "#845EC2" : "grey"}
+            color={"#845EC2"}
           />
         </Pressable>
         <Button
@@ -163,7 +155,7 @@ export default function BotNav({
             name="setting"
             family="antdesign"
             size={30}
-            color={route.name === "Settings" ? "#845EC2" : "grey"}
+            color={"#845EC2"}
           />
         </Pressable>
       </View>

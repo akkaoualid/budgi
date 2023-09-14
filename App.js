@@ -36,7 +36,7 @@ export default function App() {
           screenOptions={{ headerShown: false }}
           initialRouteName="Home"
         >
-          <Stack.Screen name="Home" component={Home} />
+          <Stack.Screen name="Home" component={Home}/>
           <Stack.Screen name="Setup" component={AddBudget} />
           <Stack.Screen name="Budget" component={TransacView} />
           <Stack.Screen name="Settings" component={Settings} />

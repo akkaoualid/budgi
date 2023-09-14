@@ -69,7 +69,7 @@ function ExpCard({ text, desc, amount, unit, callback }) {
           className="p-2 px-3 self-end items-center"
         >
           <Text style={{ color: "white" }}>
-            {getFriendlyFormat(parseFloat(amount))}{" "}
+            {amount < 0 ? '-': ''}{getFriendlyFormat(Math.abs(parseFloat(amount)))}{" "}
             {unit}
           </Text>
         </View>
