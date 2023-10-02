@@ -1,34 +1,30 @@
 import { Text, Button, Input } from "galio-framework";
-import {
-  View,
-  Switch,
-  Alert,
-  FlatList,
-  Pressable,
-  TouchableHighlight,
-  TouchableOpacity,
-} from "react-native";
+import { View, Alert, TouchableHighlight, FlatList } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Budgets } from "./DBOp";
 import { Feather } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { TagBox } from "./Utility";
+import { LinearGradient } from "expo-linear-gradient";
 
-export default function AddTransaction({ navigation }) {
-  const [date, setDate] = useState(new Date(Date.now()));
+export default function ModifyTransaction({ route, navigation }) {
+  const { transacIdx } = route.params;
+  const { budgets, budgetIdx, updateTransac } = Budgets();
+  const target = budgets[budgetIdx].transactions[transacIdx];
+  const [date, setDate] = useState(new Date(target.date));
   const [mode, setMode] = useState("date");
   const [show, setShow] = useState(false);
-  const [categoryStr, setCategoryStr] = useState(null);
-  const [selectedCat, setSelectedCat] = useState([]);
-  const [expn, setExpn] = useState(false);
+  const [selectedCat, setSelectedCat] = useState(target.categories);
+  const [expn, setExpn] = useState(target.value < 0);
 
-  const [name, setName] = useState("");
-  const [desc, setDesc] = useState("");
-  const [value, setValue] = useState("");
+  const [name, setName] = useState(target.name);
+  const [desc, setDesc] = useState(target.desc);
+  const [value, setValue] = useState(target.value);
 
-  const { addTransac, budgets, budgetIdx } = Budgets();
+  const [open, setOpen] = useState(false);
+  const [_value, _setValue] = useState(0);
+
   const categories = budgets[budgetIdx].categories || [];
   const onChange = (event, selectedDate) => {
     const currentDate = selectedDate;
@@ -55,7 +51,7 @@ export default function AddTransaction({ navigation }) {
             onPress={() => navigation.goBack()}
           />
           <Text color="white" h5>
-            Add transaction.
+            Edit transaction.
           </Text>
           <Feather
             className="self-start"
@@ -84,7 +80,7 @@ export default function AddTransaction({ navigation }) {
                     `the value you supplied "${value}" is invalid`
                   );
                 } else {
-                  addTransac(budgetIdx, {
+                  updateTransac(transacIdx, {
                     name: name,
                     desc: desc,
                     value: expn
@@ -100,84 +96,100 @@ export default function AddTransaction({ navigation }) {
           />
         </View>
       </LinearGradient>
-
       <View className="w-5/6 items-center">
-        <View>
-          <View
-            className="flex-row items-center justify-between px-2 py-2 my-5 self-center rounded"
-            style={{ gap: 10, backgroundColor: "white" }}
+        <View
+          className="flex-row items-center justify-between px-2 py-2 my-5 self-center rounded"
+          style={{ gap: 10, backgroundColor: "white" }}
+        >
+          <TouchableHighlight
+            className="rounded"
+            onPress={() => setExpn(true)}
+            activeOpacity={0.9}
           >
-            <TouchableHighlight
-              className="rounded"
-              onPress={() => setExpn(true)}
-              activeOpacity={0.9}
+            <View
+              className="px-3 py-2 rounded"
+              style={{
+                backgroundColor: expn ? "#9c62dc" : "white",
+                borderWidth: 0.5,
+                borderColor: "#9c62dc",
+              }}
             >
-              <View
-                className="px-3 py-2 rounded"
-                style={{
-                  backgroundColor: expn ? "#9c62dc" : "white",
-                  borderWidth: 0.5,
-                  borderColor: "#9c62dc",
-                }}
+              <Text
+                style={{ color: expn ? "white" : "#9c62dc", fontWeight: 400 }}
+                p
               >
-                <Text
-                  style={{ color: expn ? "white" : "#9c62dc", fontWeight: 400 }}
-                  p
-                >
-                  Expense
-                </Text>
-              </View>
-            </TouchableHighlight>
-            <TouchableHighlight
-              className="rounded"
-              onPress={() => setExpn(false)}
-              activeOpacity={0.9}
+                Expense
+              </Text>
+            </View>
+          </TouchableHighlight>
+          <TouchableHighlight
+            className="rounded"
+            onPress={() => setExpn(false)}
+            activeOpacity={0.9}
+          >
+            <View
+              className="p-3 py-2 rounded"
+              style={{
+                backgroundColor: !expn ? "#9c62dc" : "white",
+                borderWidth: 0.5,
+                borderColor: "#9c62dc",
+              }}
             >
-              <View
-                className="p-3 py-2 rounded"
+              <Text
                 style={{
-                  backgroundColor: !expn ? "#9c62dc" : "white",
-                  borderWidth: 0.5,
-                  borderColor: "#9c62dc",
+                  color: !expn ? "white" : "#9c62dc",
+                  fontWeight: 400,
                 }}
+                p
               >
-                <Text
-                  style={{
-                    color: !expn ? "white" : "#9c62dc",
-                    fontWeight: 400,
-                  }}
-                  p
-                >
-                  Income
-                </Text>
-              </View>
-            </TouchableHighlight>
-          </View>
+                Income
+              </Text>
+            </View>
+          </TouchableHighlight>
+        </View>
+        <View>
           <Input
-            placeholder="Details."
+            placeholder="Name."
+            icon="label"
+            color="black"
+            family="materialicons"
+            onChangeText={setName}
+            style={{
+              borderWidth: 0,
+            }}
+          >
+            {name}
+          </Input>
+          <Input
+            placeholder="Description."
             icon="text"
             family="entypo"
             onChangeText={setDesc}
-            multiline
-            numberOfLines={20}
+            color="black"
             style={{
-              borderWidth: 0
+              borderWidth: 0,
             }}
-          />
+            multiline
+            numberOfLines={15}
+          >
+            {desc}
+          </Input>
           <Input
             type="number-pad"
             placeholder="Value."
             icon="money"
             onChangeText={setValue}
             family="MaterialIcons"
+            color="black"
             style={{
-              borderWidth: 0
+              borderWidth: 0,
             }}
-          />
-          {/* <Text color="#6934BF" h5>
-                  Date.
-                </Text> */}
-          <Text className="mt-5" color="#9c62dc" h5>Date</Text>
+          >
+            {value}
+          </Input>
+          <Text className="mt-5 pb-2" color="#9c62dc" h5>
+            Date
+          </Text>
           <View className="flex-row w-full">
             <Button
               onPress={() => {
@@ -206,14 +218,15 @@ export default function AddTransaction({ navigation }) {
               <Text>{date.toLocaleTimeString()}</Text>
             </Button>
           </View>
+
           {show && (
             <DateTimePicker
               value={date}
               mode={mode}
               is24Hour={true}
               onChange={onChange}
-              textColor="#6934BF"
-              style={{ backgroundColor: "#6934BF" }}
+              textColor="#9c62dc"
+              style={{ backgroundColor: "#9c62dc" }}
             />
           )}
           <Text className="mt-5 pb-2" color="#9c62dc" h5>
@@ -239,8 +252,8 @@ export default function AddTransaction({ navigation }) {
                   }
                   selected={selectedCat.find((v) => v === item.name)}
                   style={{
+                    borderRadius: 20,
                     marginHorizontal: 2,
-                    borderRadius: 20
                   }}
                 />
               )}

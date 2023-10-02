@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Dimensions,
   Alert,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { Text, Icon, Button } from "galio-framework";
 import { useState } from "react";
@@ -25,7 +26,7 @@ function SectionOpt({ icon, callback, text }) {
           gap: 5,
           borderRadius: 20,
           minWidth: 150,
-          backgroundColor: "#6934BF",
+          backgroundColor: "#9c62dc",
         }}
       >
         {icon}
@@ -35,10 +36,7 @@ function SectionOpt({ icon, callback, text }) {
   );
 }
 
-export default function BotNav({
-  navigation,
-  disabled,
-}) {
+export default function BotNav({ navigation, disabled }) {
   const [pops, showPop] = useState(false);
   return (
     <View
@@ -56,82 +54,80 @@ export default function BotNav({
         onRequestClose={() => showPop(false)}
         animationType="slide"
       >
-        <BlurView intensity={100} style={{ height: "100%" }}>
-          <View
-            className="w-full self-center py-10 px-5 rounded-lg"
-            style={{ gap: 20 }}
-          >
+        <Pressable onPress={() => showPop(false)}>
+          <BlurView intensity={100} style={{ height: "100%" }}>
             <View
-              className="items-center"
-              style={{
-                gap: 10,
-                marginTop: Dimensions.get("screen").height / 4.5,
-              }}
+              className="w-full self-center py-10 px-5 rounded-lg"
+              style={{ gap: 20 }}
             >
-              <Text color="#6934BF" h3>
-                Create a new:
-              </Text>
               <View
-                className="flex-row items-center self-center"
-                style={{ gap: 20 }}
+                className="items-center"
+                style={{
+                  gap: 10,
+                  marginTop: Dimensions.get("screen").height / 4.5,
+                }}
               >
-                <SectionOpt
-                  text="Transaction"
-                  icon={<FontAwesome name="money" size={24} color="white" />}
-                  callback={() => {
-                    showPop(false);
-                    navigation.navigate("AddTransac");
-                  }}
-                />
-                <SectionOpt
-                  text="Budget."
-                  icon={<AntDesign name="wallet" size={24} color="white" />}
-                  callback={() => {
-                    showPop(false);
-                    navigation.navigate("Setup");
-                  }}
-                />
-              </View>
-              <View
-                className="flex-row items-center self-center"
-                style={{ gap: 20 }}
-              >
-                <SectionOpt
-                  text="Category."
-                  icon={
-                    <MaterialIcons name="category" size={24} color="white" />
-                  }
-                  callback={() => {
-                    showPop(false);
-                    navigation.navigate("AddCat");
-                  }}
-                />
-                <SectionOpt
-                  text="Goal."
-                  icon={<Feather name="flag" size={24} color="white" />}
-                  callback={() => {
-                    showPop(false);
-                    navigation.navigate("AddGoal");
-                  }}
-                />
+                <Text color="#9c62dc" h3>
+                  Create a new:
+                </Text>
+                <View
+                  className="flex-row items-center self-center"
+                  style={{ gap: 20 }}
+                >
+                  <SectionOpt
+                    text="Transaction"
+                    icon={<FontAwesome name="money" size={24} color="white" />}
+                    callback={() => {
+                      showPop(false);
+                      navigation.navigate("AddTransac");
+                    }}
+                  />
+                  <SectionOpt
+                    text="Budget."
+                    icon={<AntDesign name="wallet" size={24} color="white" />}
+                    callback={() => {
+                      showPop(false);
+                      navigation.navigate("Setup");
+                    }}
+                  />
+                </View>
+                <View
+                  className="flex-row items-center self-center"
+                  style={{ gap: 20 }}
+                >
+                  <SectionOpt
+                    text="Category."
+                    icon={
+                      <MaterialIcons name="category" size={24} color="white" />
+                    }
+                    callback={() => {
+                      showPop(false);
+                      navigation.navigate("AddCat");
+                    }}
+                  />
+                  <SectionOpt
+                    text="Goal."
+                    icon={<Feather name="flag" size={24} color="white" />}
+                    callback={() => {
+                      showPop(false);
+                      navigation.navigate("AddGoal");
+                    }}
+                  />
+                </View>
               </View>
             </View>
-          </View>
-        </BlurView>
+          </BlurView>
+        </Pressable>
       </Modal>
 
       <View className="self-center flex-row mt-2" style={{ gap: 30 }}>
         <Pressable onPress={() => navigation.navigate("Home")}>
-          <Icon
-            name="home"
-            family="antdesign"
-            size={30}
-            color={"#845EC2"}
-          />
+          <Icon name="home" family="antdesign" size={30} color="#9c62dc" />
         </Pressable>
         <Button
           icon="plus"
           iconFamily="antdesign"
+          color="#9c62dc"
           style={{
             bottom: "14%",
             width: 50 * 1.25,
@@ -151,12 +147,7 @@ export default function BotNav({
           onlyIcon
         />
         <Pressable onPress={() => navigation.navigate("Settings")}>
-          <Icon
-            name="setting"
-            family="antdesign"
-            size={30}
-            color={"#845EC2"}
-          />
+          <Icon name="setting" family="antdesign" size={30} color="#9c62dc" />
         </Pressable>
       </View>
     </View>

@@ -4,9 +4,9 @@ import { Text, Button } from "galio-framework";
 import { Dimensions } from "react-native";
 import { BarChart, CurveType, LineChart } from "react-native-gifted-charts";
 import { Budgets, AppSettings } from "./DBOp";
-import { getFriendlyFormat } from "./Utility";
+import { ThreeDotsMenu, getFriendlyFormat } from "./Utility";
 import Carousel from "react-native-reanimated-carousel";
-import { AntDesign } from "@expo/vector-icons";
+import { AntDesign, Feather } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
 
 const screenWidth = Dimensions.get("window").width;
@@ -34,7 +34,7 @@ function categoriesByProfitLoss(transacs, newvalue, isExpn) {
             ((newvalue - (isExpn ? loss[v] : profit[v])) / newvalue) * 100,
           label: v,
           labelTextStyle: {
-            color: "#6934BF",
+            color: "#9c62dc",
             textTransform: "capitalize",
             top: 0,
           },
@@ -45,7 +45,7 @@ function categoriesByProfitLoss(transacs, newvalue, isExpn) {
                 alignSelf: "center",
                 fontSize: 12,
                 height: 25,
-                color: "#6934BF",
+                color: "#9c62dc",
               }}
             >
               {(
@@ -55,7 +55,7 @@ function categoriesByProfitLoss(transacs, newvalue, isExpn) {
               %
             </Text>
           ),
-          frontColor: "#6934BF",
+          frontColor: "#9c62dc",
         },
       ];
     })
@@ -82,26 +82,26 @@ function getThisWeek(transacs) {
       date.getDate() >= currDay - 7 &&
       currMonth === date.getMonth() &&
       currYear === date.getFullYear()
-      ) {
-        let value = parseFloat(v.value);
-        let day = date.getDate();
-        if (value < 0) {
-          loss[day] += Math.abs(value);
-        } else {
-          profit[day] += value;
-        }
+    ) {
+      let value = parseFloat(v.value);
+      let day = date.getDate();
+      if (value < 0) {
+        loss[day] += Math.abs(value);
+      } else {
+        profit[day] += value;
       }
-    });
-    
-    let thisWeekMax = Math.max(
-      Object.values(loss).reduce((a, b) => a + b, 0),
-      Object.values(profit).reduce((a, b) => a + b, 0)
-    );
-    let thisWeekProfit = Object.keys(profit).map((v) => {
-      return {
-        label: v,
-        dataPointText: getFriendlyFormat(parseFloat(profit[v])),
-        value: parseFloat(profit[v]),
+    }
+  });
+
+  let thisWeekMax = Math.max(
+    Object.values(loss).reduce((a, b) => a + b, 0),
+    Object.values(profit).reduce((a, b) => a + b, 0)
+  );
+  let thisWeekProfit = Object.keys(profit).map((v) => {
+    return {
+      label: v,
+      dataPointText: getFriendlyFormat(parseFloat(profit[v])),
+      value: parseFloat(profit[v]),
     };
   });
   let thisWeekLoss = Object.keys(loss).map((v) => {
@@ -275,7 +275,7 @@ function getThisYear(transacs) {
 
 export default function Audit({ navigation }) {
   const { delGoal, delBudget, budgetIdx, budgets } = Budgets();
-  const { currency } = AppSettings();
+  const { currency, symbol } = AppSettings();
   const budget = budgets[budgetIdx];
 
   const transacs = budget.transactions;
@@ -311,18 +311,37 @@ export default function Audit({ navigation }) {
     <SafeAreaView style={{ backgroundColor: "#E5DDF0", height: "100%" }}>
       <View className="w-5/6 self-center items-center my-8" style={{ gap: 5 }}>
         <View
-          className="w-full px-5 py-2 rounded-lg"
+          className="w-full px-3 py-2 rounded-lg"
           style={{ backgroundColor: "white" }}
         >
           <View
-            className="flex-row items-center self-end w-full"
+            className="flex-row items-center w-full"
             style={{ justifyContent: "space-between" }}
           >
+            <Feather
+              name="arrow-left"
+              color="#9c62dc"
+              size={23}
+              onPress={() => navigation.goBack()}
+            />
+            <ThreeDotsMenu
+              iconColor="#9c62dc"
+              iconSize={18}
+              onEditCallback={() => navigation.navigate("ModifyBudget")}
+              onDeleteCallback={() => delBudget(budgetIdx)}
+            />
+          </View>
+          <View className="flex-row">
+            <Text
+              color="#9c62dc"
+              style={{ fontFamily: "Jose-Regular", fontSize: 50 }}
+            >
+              {newvalue.toLocaleString()}
+            </Text>
             <View
-              className="flex-row items-center rounded-lg py-2 px-2"
+              className="flex-row items-center rounded-lg py-2 px-2 self-end"
               style={{
                 gap: 5,
-                backgroundColor: "rgba(0,0,0,0.1)",
               }}
             >
               <AntDesign
@@ -337,37 +356,19 @@ export default function Audit({ navigation }) {
                 {(((newvalue - oldvalue) / oldvalue) * 100).toFixed(2)}%
               </Text>
             </View>
-            <Button
-              icon="delete"
-              iconFamily="antdesign"
-              iconSize={12}
-              color="grey"
-              iconColor="#6934BF"
-              onPress={() => {
-                delBudget(budgetIdx);
-                navigation.goBack();
-              }}
-              onlyIcon
-            ></Button>
           </View>
-          <Text
-            color="#6934BF"
-            style={{ fontFamily: "Jose-Regular", fontSize: 50 }}
-          >
-            {newvalue.toLocaleString()}
-          </Text>
           <View
             className="flex-row items-center"
             style={{ justifyContent: "space-between" }}
           >
-            <Text color="#6934BF">{currency}</Text>
+            <Text color="#9c62dc">{currency}</Text>
           </View>
         </View>
 
         {transacs.length === 0 ? (
           <View
             className="rounded-lg w-full py-20 px-5 items-center"
-            style={{ backgroundColor: "#6934BF" }}
+            style={{ backgroundColor: "#9c62dc" }}
           >
             <Text color="white">No data</Text>
           </View>
@@ -382,13 +383,13 @@ export default function Audit({ navigation }) {
                 iconFamily="antdesign"
                 iconSize={15}
                 color="#DFDFDF"
-                iconColor="#6934BF"
+                iconColor="#9c62dc"
                 onPress={() => {
                   setCarouselIdx(carouselIdx === 0 ? 0 : carouselIdx - 1);
                 }}
                 onlyIcon
               ></Button>
-              <Text color="#6934BF" h5>
+              <Text color="#9c62dc" h5>
                 {filterByText[carouselIdx]}
               </Text>
               <Button
@@ -403,7 +404,7 @@ export default function Audit({ navigation }) {
                       : carouselIdx + 1
                   );
                 }}
-                iconColor="#6934BF"
+                iconColor="#9c62dc"
                 onlyIcon
               ></Button>
             </View>
@@ -412,19 +413,19 @@ export default function Audit({ navigation }) {
                 onPress={() => setShowExpn(false)}
                 className="rounded-lg mt-2 w-20"
                 style={{
-                  backgroundColor: !showExpn ? "#6934BF" : "white",
+                  backgroundColor: !showExpn ? "#9c62dc" : "white",
                 }}
               >
-                <Text color={showExpn ? "#6934BF" : "white"}>Incomes</Text>
+                <Text color={showExpn ? "#9c62dc" : "white"}>Incomes</Text>
               </Button>
               <Button
                 onPress={() => setShowExpn(true)}
                 className="rounded-lg mt-2 ml-2 w-20"
                 style={{
-                  backgroundColor: showExpn ? "#6934BF" : "white",
+                  backgroundColor: showExpn ? "#9c62dc" : "white",
                 }}
               >
-                <Text color={!showExpn ? "#6934BF" : "white"}>Expeneses</Text>
+                <Text color={!showExpn ? "#9c62dc" : "white"}>Expeneses</Text>
               </Button>
             </View>
             <View className="flex-column items-center self-center py-5 w-full">
@@ -442,21 +443,21 @@ export default function Audit({ navigation }) {
                     maxValue={120}
                     width={screenWidth / 1.2}
                     hideYAxisText
-                    yAxisTextStyle={{ color: "#6934BF" }}
-                    rulesColor="#6934BF"
+                    yAxisTextStyle={{ color: "#9c62dc" }}
+                    rulesColor="#9c62dc"
                     isAnimated
                   />,
                   <LineChart
                     spacing={20}
-                    xAxisLabelTextStyle={{ color: "#6934BF" }}
-                    yAxisTextStyle={{ color: "#6934BF" }}
+                    xAxisLabelTextStyle={{ color: "#9c62dc" }}
+                    yAxisTextStyle={{ color: "#9c62dc" }}
                     rulesColor="#9987B5"
                     verticalLinesColor="#9987B5"
                     data={showExpn ? thisDayLoss : thisDayProfit}
-                    color="#6934BF"
+                    color="#9c62dc"
                     maxValue={thisDayMax + thisDayMax / 10}
                     scrollToIndex={new Date().getHours() - 5}
-                    dataPointsColor="#6934BF"
+                    dataPointsColor="#9c62dc"
                     hideRules
                     width={screenWidth / 1.2}
                     curveType={CurveType.QUADRATIC}
@@ -466,43 +467,43 @@ export default function Audit({ navigation }) {
                     dataPointsHeight={20}
                     dataPointsWidth1={20}
                     textFontSize={13}
-                    textColor="black"
+                    textColor="#9c62dc"
                     xAxisThickness={0}
                   />,
                   <LineChart
                     spacing={45}
-                    xAxisLabelTextStyle={{ color: "#6934BF" }}
-                    yAxisTextStyle={{ color: "#6934BF" }}
+                    xAxisLabelTextStyle={{ color: "#9c62dc" }}
+                    yAxisTextStyle={{ color: "#9c62dc" }}
                     rulesColor="#9987B5"
                     verticalLinesColor="#9987B5"
                     data={showExpn ? thisWeekLoss : thisWeekProfit}
                     maxValue={thisWeekMax + thisWeekMax / 10}
-                    color1="#6934BF"
+                    color="#9c62dc"
                     scrollToIndex={new Date().getDate() - 5}
                     hideRules
-                    dataPointsColor1="#6934BF"
+                    dataPointsColor1="#9c62dc"
                     curveType={CurveType.QUADRATIC}
                     width={screenWidth / 1.2}
                     curved
                     yAxisThickness={0}
                     xAxisThickness={0}
                     dataPointsHeight={20}
-                    dataPointsWidth1={20}
+                    dataPointsWidth={15}
                     textFontSize={13}
-                    textColor="black"
+                    textColor="#9c62dc"
                     hideYAxisText
                   />,
 
                   <LineChart
                     spacing={20}
-                    xAxisLabelTextStyle={{ color: "#6934BF" }}
-                    yAxisTextStyle={{ color: "#6934BF" }}
+                    xAxisLabelTextStyle={{ color: "#9c62dc" }}
+                    yAxisTextStyle={{ color: "#9c62dc" }}
                     rulesColor="#9987B5"
                     data={showExpn ? thisMonthLoss : thisMonthProfit}
                     verticalLinesColor="#9987B5"
-                    color1="#6934BF"
+                    color1="#9c62dc"
                     maxValue={thisMonthMax + thisMonthMax / 10}
-                    dataPointsColor1="#6934BF"
+                    dataPointsColor1="#9c62dc"
                     scrollToIndex={new Date().getDate() - 5}
                     hideRules
                     width={screenWidth / 1.2}
@@ -518,15 +519,15 @@ export default function Audit({ navigation }) {
                   />,
                   <LineChart
                     spacing={30}
-                    xAxisLabelTextStyle={{ color: "#6934BF" }}
-                    yAxisTextStyle={{ color: "#6934BF" }}
+                    xAxisLabelTextStyle={{ color: "#9c62dc" }}
+                    yAxisTextStyle={{ color: "#9c62dc" }}
                     rulesColor="#9987B5"
                     verticalLinesColor="#9987B5"
                     data={showExpn ? thisYearLoss : thisYearProfit}
-                    color1="#6934BF"
+                    color1="#9c62dc"
                     scrollToIndex={new Date().getMonth()}
                     maxValue={thisYearMax + thisYearMax / 10}
-                    dataPointsColor1="#6934BF"
+                    dataPointsColor1="#9c62dc"
                     dataPointsColor2="white"
                     hideRules
                     width={screenWidth / 1.2}
@@ -548,7 +549,7 @@ export default function Audit({ navigation }) {
         <Text
           className="self-start"
           style={{
-            color: "#6934BF",
+            color: "#9c62dc",
             fontSize: 40,
             fontFamily: "Inter-Regular",
           }}
@@ -558,7 +559,7 @@ export default function Audit({ navigation }) {
         {goals.length === 0 ? (
           <View
             className="rounded-lg w-full py-20 px-5 items-center"
-            style={{ backgroundColor: "#6934BF" }}
+            style={{ backgroundColor: "#9c62dc" }}
           >
             <Text color="white">No data</Text>
           </View>
@@ -573,7 +574,7 @@ export default function Audit({ navigation }) {
             renderItem={({ index, item }) => (
               <View
                 className="mx-5 items-center py-5 px-5 rounded-lg"
-                style={{ backgroundColor: "#6934BF" }}
+                style={{ backgroundColor: "#9c62dc" }}
               >
                 <Text
                   color="white"
@@ -614,10 +615,10 @@ export default function Audit({ navigation }) {
                   style={{ justifyContent: "space-between" }}
                 >
                   <Text color="white" style={{ fontFamily: "Inter-Regular" }}>
-                    0$
+                    0 {symbol}
                   </Text>
                   <Text color="white" style={{ fontFamily: "Inter-Regular" }}>
-                    {getFriendlyFormat(item.value)}$
+                    {getFriendlyFormat(item.value)} {symbol}
                   </Text>
                 </View>
                 <Button
@@ -625,7 +626,7 @@ export default function Audit({ navigation }) {
                   style={{ width: 70, height: 30 }}
                   onPress={() => delGoal(budgetIdx, index)}
                 >
-                  <Text color="#6934BF" style={{ fontSize: 12 }}>
+                  <Text color="#9c62dc" style={{ fontSize: 12 }}>
                     DELETE
                   </Text>
                 </Button>

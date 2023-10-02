@@ -1,8 +1,13 @@
 import "react-native-gesture-handler";
 import Home from "./src/Home.js";
 import AddBudget from "./src/AddBudget.js";
+import ModifyBudget from './src/ModifyBudget.js';
+
 import AddTransaction from "./src/AddTransaction.js";
+import ModifyTransaction from "./src/ModifyTransaction.js";
 import AddCategory from "./src/AddCategory.js";
+
+
 import AddGoal from "./src/AddGoal.js";
 
 import TransacView from "./src/TransacView.js";
@@ -16,7 +21,7 @@ import { useFonts } from "expo-font";
 
 const CTHEME = {
   COLORS: {
-    PRIMARY: "#6934BF",
+    PRIMARY: "#9c62dc",
     SECONDARY: "#E5DDF0",
   },
 };
@@ -44,6 +49,8 @@ export default function App() {
           <Stack.Screen name="AddCat" component={AddCategory} />
           <Stack.Screen name="AddGoal" component={AddGoal} />
           <Stack.Screen name="Audit" component={Audit} />
+          <Stack.Screen name="ModifyBudget" component={ModifyBudget}/>
+          <Stack.Screen name="ModifyTransaction" component={ModifyTransaction}/>
         </Stack.Navigator>
       </GalioProvider>
     </NavigationContainer>

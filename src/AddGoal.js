@@ -3,28 +3,40 @@ import { Text, Input, Button } from "galio-framework";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Budgets } from "./DBOp";
 import { useState } from "react";
+import { LinearGradient } from "expo-linear-gradient";
+import { Feather } from "@expo/vector-icons";
 
 export default function AddGoal({ navigation }) {
   const { addGoal, budgetIdx } = Budgets();
   const [name, setName] = useState("");
   const [value, setValue] = useState(0);
   return (
-    <SafeAreaView style={{ backgroundColor: "#E5DDF0", height: "100%" }}>
-      <View className="w-5/6 self-center items-center my-8" style={{ gap: 20 }}>
-        <Text color="#6934BF" h1>
-          Add Goal.
-        </Text>
-        <Input onChangeText={setName} placeholder="Name" />
-        <Input onChangeText={setValue} type="numeric" placeholder="Target" />
-        <View className="flex-row">
-          <Button
+    <SafeAreaView
+      className="items-center"
+      style={{ backgroundColor: "#E5DDF0", height: "100%" }}
+    >
+      <LinearGradient
+        start={[1, 1]}
+        end={[0, 1]}
+        colors={["#DB9AFF", "#6934BF"]}
+        className="rounded-lg w-[90%] items-center py-5 mt-5"
+      >
+        <View className="flex-row justify-between items-center self-start w-5/6 self-center">
+          <Feather
+            className="self-start"
+            name="x"
+            color="white"
+            size={25}
             onPress={() => navigation.goBack()}
-            style={{ borderColor: "#6934BF" }}
-            color="transparent"
-          >
-            <Text color="#6934BF">Cancel.</Text>
-          </Button>
-          <Button
+          />
+          <Text color="white" h5>
+            Add Goal.
+          </Text>
+          <Feather
+            className="self-start"
+            name="check"
+            color="white"
+            size={25}
             onPress={() => {
               if (name === "" || value === 0) {
                 Alert.alert(
@@ -44,10 +56,21 @@ export default function AddGoal({ navigation }) {
                 }
               }
             }}
-          >
-            Create.
-          </Button>
+          />
         </View>
+      </LinearGradient>
+      <View className="w-5/6 self-center items-center my-8" style={{ gap: 20 }}>
+        <Input
+          onChangeText={setName}
+          placeholder="Name"
+          style={{ borderWidth: 0 }}
+        />
+        <Input
+          onChangeText={setValue}
+          type="numeric"
+          placeholder="Target"
+          style={{ borderWidth: 0 }}
+        />
       </View>
     </SafeAreaView>
   );

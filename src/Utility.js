@@ -2,9 +2,44 @@ import {
   StyleSheet,
   View,
   TouchableOpacity,
+  Modal,
+  Pressable,
+  Dimensions,
 } from "react-native";
-import { Text } from "galio-framework";
-import { AntDesign } from "@expo/vector-icons";
+import { Text, Button } from "galio-framework";
+import { Feather, Entypo } from "@expo/vector-icons";
+import { useState } from "react";
+
+function TagBox({
+  onPress,
+  content,
+  selected,
+  bgColor,
+  selectedBgColor,
+  style,
+}) {
+  return (
+    <TouchableOpacity
+      activeOpacity={0.5}
+      className="items-center"
+      style={[
+        {
+          backgroundColor: selected ? selectedBgColor : bgColor,
+          width: Dimensions.get("screen").width / 4,
+        },
+        style,
+      ]}
+      onPress={() => onPress(content)}
+    >
+      <Text
+        className="py-2 px-2"
+        style={{ color: selected ? "white" : "black" }}
+      >
+        {content}
+      </Text>
+    </TouchableOpacity>
+  );
+}
 
 function HLine(props) {
   return (
@@ -30,51 +65,109 @@ function getFriendlyFormat(n) {
   }
 }
 
-
-
-function ExpCard({ text, desc, amount, unit, callback }) {
+function ExpCard({ desc, amount, unit, callback }) {
   return (
     <TouchableOpacity activeOpacity={0.5} onPress={callback}>
       <View
         style={{
-          borderRadius: 20,
-          flexDirection: "row",
-          justifyContent: "space-between",
-          width: "90%",
           backgroundColor: "rgba(0,0,0,0.05)",
         }}
-        className="self-center px-10 py-7 items-center"
+        className="flex-row rounded-3xl justify-between w-5/6 items-center self-center px-3 py-8"
       >
         <View className="flex-row items-center" style={{ gap: 10 }}>
-          <AntDesign
-            name={amount >= 0 ? "up" : "down"}
-            size={24}
+          <Feather
+            name={amount >= 0 ? "plus" : "minus"}
+            size={18}
             color={amount >= 0 ? "green" : "red"}
           />
-          <View>
-            <Text style={{ color: "black", flexShrink: 5 }} p>
-              {text}
-            </Text>
-            <Text color="grey" style={{ width: 170 }}>
-              {desc}
-            </Text>
-          </View>
+          <Text color="black" style={{ width: 170 }} p>
+            {desc.length >= 30 ? `${desc.substring(0, 30)}...` : desc}
+          </Text>
         </View>
         <View
           style={{
-            backgroundColor: "#DB9AFF",
+            backgroundColor: "#9c62dc",
             borderRadius: 100,
             minWidth: 80,
           }}
           className="p-2 px-3 self-end items-center"
         >
           <Text style={{ color: "white" }}>
-            {amount < 0 ? '-': ''}{getFriendlyFormat(Math.abs(parseFloat(amount)))}{" "}
-            {unit}
+            {amount < 0 ? "-" : ""}
+            {getFriendlyFormat(Math.abs(parseFloat(amount)))} {unit}
           </Text>
         </View>
       </View>
     </TouchableOpacity>
   );
 }
-export {  ExpCard, HLine, getFriendlyFormat };
+
+function ThreeDotsMenu({
+  iconColor,
+  iconSize,
+  onEditCallback,
+  onDeleteCallback,
+}) {
+  const [show, setShow] = useState(false);
+  const [showMenu, setShowMenu] = useState(true);
+  const [position, setPosition] = useState({ x: 0, y: 0, width: 0 });
+  const maxWidth = Dimensions.get("screen").width;
+  return (
+    <View>
+      <Entypo
+        name="dots-three-vertical"
+        size={iconSize}
+        color={iconColor}
+        onLayout={(e) => {
+          e.target.measure((x, y, width, height, pageX, pageY) => {
+            setPosition({
+              x: pageX + x,
+              y: pageY + y,
+              width: width,
+              height: height,
+            });
+          });
+        }}
+        onPress={() => setShow(!show)}
+      />
+      <Modal
+        visible={show}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShow(false)}
+      >
+        <Pressable onPress={() => setShow(false)}>
+          <View
+            className="w-full h-full items-center"
+            style={{
+              backgroundColor: "rgba(0,0,0,0.2)",
+            }}
+          >
+            {showMenu ? (
+              <View
+                className="rounded-lg"
+                style={{
+                  zIndex: 1000,
+                  top: position.y,
+                  left: maxWidth - position.x,
+                  backgroundColor: "white",
+                }}
+              >
+                <Button color="grey" onPress={onEditCallback}>
+                  <Text>Edit</Text>
+                </Button>
+                <Button color="grey" onPress={onDeleteCallback}>
+                  <Text>Delete</Text>
+                </Button>
+              </View>
+            ) : (
+              <></>
+            )}
+          </View>
+        </Pressable>
+      </Modal>
+    </View>
+  );
+}
+
+export { ExpCard, HLine, getFriendlyFormat, ThreeDotsMenu, TagBox };

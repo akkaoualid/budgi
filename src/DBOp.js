@@ -8,7 +8,28 @@ const Budgets = create(
       budgets: [],
       budgetIdx: 0,
       setBudgetIdx: async (idx) => set({ ...get().budgets, budgetIdx: idx }),
+
       addBudget: async (budget) => set({ budgets: [...get().budgets, budget] }),
+      updateBudget: async (idx, newBudget) =>
+        set({
+          budgets: get().budgets.map((budget, i) => {
+            return i === idx
+              ? {
+                  ...budget,
+                  name: newBudget.name,
+                  value: newBudget.value,
+                  desc: newBudget.desc,
+                  date: newBudget.date,
+                }
+              : budget;
+          }),
+        }),
+      delBudget: async (idx) => {
+        set({
+          budgets: get().budgets.filter((_, i) => !(idx === i)),
+          budgetIdx: idx === 0 ? 0 : idx - 1,
+        });
+      },
       addTransac: async (budget_idx, transac) => {
         set({
           budgets: get().budgets.map((budget, i) => {
@@ -24,6 +45,19 @@ const Budgets = create(
           }),
         });
       },
+      updateTransac: async (idx, newTransac) =>
+        set({
+          budgets: get().budgets.map((budget, i) => {
+            return i === get().budgetIdx
+              ? {
+                  ...budget,
+                  transactions: budget.transactions.map((transac, j) => {
+                    return j == idx ? newTransac : transac;
+                  }),
+                }
+              : budget;
+          }),
+        }),
       delTransac: async (budget_idx, tr_idx, trv) =>
         set({
           budgets: get().budgets.map((budget, i) => {
@@ -89,13 +123,7 @@ const Budgets = create(
           ),
         });
       },
-      delBudget: async (idx) => {
-        set({
-          budgets: get().budgets.filter((_, i) => !(idx === i)),
-          budgetIdx: idx === 0 ? 0 : idx - 1
-        });
-      },
-      purgeAll: async() => set({budgets: [], budgetIdx: 0})
+      purgeAll: async () => set({ budgets: [], budgetIdx: 0 }),
     }),
     {
       name: "budgi_budget.data",
@@ -108,7 +136,9 @@ const AppSettings = create(
   persist(
     (set, get) => ({
       currency: "USD",
+      symbol: "$",
       setCurrency: async (curr) => set({ currency: curr }),
+      setSymbol: async (sym) => set({ symbol: sym }),
     }),
     {
       name: "budgi_settings.data",

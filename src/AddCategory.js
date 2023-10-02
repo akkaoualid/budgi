@@ -1,32 +1,66 @@
-import { View, Alert } from "react-native";
+import { View, Alert, FlatList, TextInput } from "react-native";
 import { Text, Input, Button } from "galio-framework";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Budgets } from "./DBOp";
 import { useState } from "react";
+import { Feather } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { HLine } from "./Utility";
 
 export default function AddCategory({ navigation, route }) {
-  const { addCat, budgetIdx } = Budgets();
+  const { addCat, delCat, budgetIdx, budgets } = Budgets();
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
+  const categories = budgets[budgetIdx].categories;
   return (
-    <SafeAreaView style={{ backgroundColor: "#E5DDF0", height: "100%" }}>
-      <View className="w-5/6 self-center items-center my-8" style={{ gap: 20 }}>
-        <Text color="#6934BF" h1>
-          Add category.
-        </Text>
-        <Input onChangeText={setName} placeholder="Name" />
-        <Input onChangeText={setDesc} placeholder="Description" />
-        <View className="flex-row">
-          <Button
+    <SafeAreaView
+      className="items-center"
+      style={{ height: "100%", width: "100%", backgroundColor: "#E5DDF0" }}
+    >
+      <LinearGradient
+        start={[1, 1]}
+        end={[0, 1]}
+        colors={["#DB9AFF", "#6934BF"]}
+        className="rounded-lg w-[90%] items-center py-5 mt-5"
+      >
+        <View
+          className="flex-row items-center self-start w-5/6 self-center"
+        >
+          <Feather
+            className="self-start"
+            name="x"
+            color="white"
+            size={25}
             onPress={() => navigation.goBack()}
-            style={{ borderColor: "#6934BF" }}
-            color="transparent"
+          />
+          <Text color="white" className="ml-[25%]" h5>
+            Add Category.
+          </Text>
+        </View>
+      </LinearGradient>
+      <View className="w-5/6 self-center items-center">
+        <View className="flex-row w-full justify-between items-center mt-5">
+          <TextInput
+            className="w-5/6 rounded-lg p-2"
+            style={{
+              borderWidth: 0.5,
+              backgroundColor: "white",
+              borderColor: "grey",
+            }}
+            onChangeText={setName}
+            placeholder="Value"
           >
-            <Text color="#6934BF">Cancel.</Text>
-          </Button>
+            {name}
+          </TextInput>
           <Button
+            icon="plus"
+            iconFamily="entypo"
+            color="white"
+            iconColor="#9c62dc"
+            style={{ borderWidth: 0.5, borderColor: "grey" }}
+            onlyIcon
             onPress={() => {
-              if (name === "" || desc === 0) {
+              if (name === "") {
                 Alert.alert(
                   "Couldn't add category",
                   "plz fill the blanks before adding anything smh."
@@ -34,15 +68,47 @@ export default function AddCategory({ navigation, route }) {
               } else {
                 addCat(budgetIdx, {
                   name: name,
-                  desc: desc,
                   date: new Date().toISOString(),
                 });
-                navigation.goBack();
+                setName("");
               }
             }}
-          >
-            Create.
-          </Button>
+          />
+        </View>
+        <View
+          className="my-4"
+          style={{ height: 1, width: "100%", backgroundColor: "#9c62dc" }}
+        ></View>
+        <Text color="#9c62dc" h4>
+          Categories
+        </Text>
+        <View className="w-full h-[60%] mt-8">
+          <FlatList
+            data={categories}
+            contentContainerStyle={{ gap: 5 }}
+            renderItem={({ item, index }) => (
+              <View
+                className="flex-row items-center justify-between w-full pl-4 rounded-lg"
+                style={{
+                  borderWidth: 0.5,
+                  borderColor: "grey",
+                  backgroundColor: "white",
+                }}
+              >
+                <Text>{item.name}</Text>
+                <Button
+                  color="white"
+                  iconColor="#9c62dc"
+                  iconFamily="entypo"
+                  icon="trash"
+                  iconSize={14}
+                  onlyIcon
+                  style={{ borderColor: "#9c62dc", borderWidth: 0.5 }}
+                  onPress={() => delCat(budgetIdx, index)}
+                />
+              </View>
+            )}
+          />
         </View>
       </View>
     </SafeAreaView>

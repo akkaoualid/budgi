@@ -1,79 +1,61 @@
-import { View, TouchableOpacity, FlatList, Dimensions } from "react-native";
+import {
+  View,
+  TouchableOpacity,
+  FlatList,
+  Dimensions,
+  Modal,
+} from "react-native";
 import { Button, Text } from "galio-framework";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-import { HLine, ExpCard, getFriendlyFormat } from "./Utility";
+import {
+  HLine,
+  ExpCard,
+  getFriendlyFormat,
+  ThreeDotsMenu,
+  TagBox,
+} from "./Utility";
 import { Budgets, AppSettings } from "./DBOp";
 import Carousel from "react-native-reanimated-carousel";
 import BotNav from "./BotNav";
 import { LinearGradient } from "expo-linear-gradient";
+import { EvilIcons } from "@expo/vector-icons";
 
-function TagBox({ onPress, content, selected }) {
-  return (
-    <TouchableOpacity
-      activeOpacity={0.5}
-      className="rounded-lg items-center"
-      style={{
-        backgroundColor: selected ? "#825DBD" : "#DEDEDE",
-        width: Dimensions.get("screen").width / 4,
-      }}
-      onPress={() => onPress(content)}
-    >
-      <Text
-        className="py-2 px-2"
-        style={{ color: selected ? "white" : "black" }}
-      >
-        {content}
-      </Text>
-    </TouchableOpacity>
-  );
-}
-
-function BudgetCard({ name, value, callback }) {
+function BudgetCard({ navigation, name, value, callback }) {
   const { currency } = AppSettings();
   const { delBudget, budgetIdx } = Budgets();
   return (
-    <TouchableOpacity activeOpacity={0.5} onPress={callback} className="mx-4">
-      <LinearGradient
-        start={[0, 0]}
-        end={[1, 1]}
-        colors={["#DB9AFF", "#6934BF"]}
-        style={{ borderRadius: 20 }}
-      >
-        <View
-          className="items-center"
-          style={{
-            gap: 20,
-            paddingHorizontal: 30,
-            paddingVertical: 20,
-            borderRadius: 20,
-          }}
+    <View>
+      <TouchableOpacity activeOpacity={0.5} onPress={callback} className="mx-4">
+        <LinearGradient
+          start={[0, 0]}
+          end={[1, 1]}
+          colors={["#DB9AFF", "#6934BF"]}
+          style={{ borderRadius: 20 }}
         >
-          <Text
-            color="white"
-            style={{ fontSize: 45, fontFamily: "Jose-Regular" }}
+          <View
+            className="items-center"
+            style={{
+              gap: 20,
+              paddingHorizontal: 30,
+              paddingVertical: 20,
+              borderRadius: 20,
+            }}
           >
-            {getFriendlyFormat(parseFloat(value))} {currency}
-          </Text>
-          <Text color="white" p>
-            {name}
-          </Text>
-        </View>
-        <Button
-          icon="delete"
-          iconFamily="antdesign"
-          iconSize={12}
-          color="grey"
-          className="self-end"
-          iconColor="#6934BF"
-          onPress={() => {
-            delBudget(budgetIdx);
-          }}
-          onlyIcon
-        ></Button>
-      </LinearGradient>
-    </TouchableOpacity>
+            <Text
+              color="white"
+              style={{ fontSize: 45, fontFamily: "Jose-Regular" }}
+            >
+              {getFriendlyFormat(parseFloat(value))} {currency}
+            </Text>
+            <Text color="white" p>
+              {name}
+            </Text>
+          </View>
+        </LinearGradient>
+      </TouchableOpacity>
+    </View>
   );
 }
 
@@ -147,9 +129,12 @@ function TransacsCard({ data, navigation, budgetIdx }) {
               content={item}
               onPress={(i) => setFilterBy(i)}
               selected={item === filterBy}
+              selectedBgColor="#9c62dc"
+              bgColor="#DEDEDE"
+              style={{borderRadius: 20}}
             />
           )}
-          contentContainerStyle={{ gap: 25 }}
+          contentContainerStyle={{ gap: 15 }}
           showsHorizontalScrollIndicator={false}
           horizontal
         />
@@ -162,7 +147,6 @@ function TransacsCard({ data, navigation, budgetIdx }) {
           renderItem={({ item, index }) => {
             return (
               <ExpCard
-                text={item.name}
                 desc={item.desc}
                 amount={item.value}
                 unit={currency}
@@ -222,18 +206,30 @@ export default function Home({ route, navigation }) {
               <HLine />
             </View>
           ) : (
-            <View style={{ width: "100%", alignItems: "center", gap: 45 }}>
+            <View style={{ width: "100%", alignItems: "center", gap: 10 }}>
+              <View
+                className="self-end rounded-full p-2"
+                backgroundColor="whitesmoke"
+              >
+                <ThreeDotsMenu
+                  iconColor="#6934BF"
+                  iconSize={18}
+                  onEditCallback={() => navigation.navigate("ModifyBudget")}
+                  onDeleteCallback={() => delBudget(budgetIdx)}
+                />
+              </View>
               <Carousel
                 loop={false}
                 style={{ gap: 50 }}
                 defaultIndex={budgetIdx}
                 width={Dimensions.get("window").width - 20}
-                height={Dimensions.get("window").width / 2}
+                height={Dimensions.get("window").height / 5.5}
                 data={budgets}
                 scrollAnimationDuration={100}
                 onSnapToItem={(index) => setBudgetIdx(index)}
                 renderItem={({ item }) => (
                   <BudgetCard
+                    navigation={navigation}
                     name={item.name}
                     budgetIdx={budgetIdx}
                     value={parseFloat(item.newvalue)}

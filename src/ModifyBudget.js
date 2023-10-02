@@ -8,16 +8,18 @@ import { MaterialCommunityIcons, Feather } from "@expo/vector-icons";
 import { Budgets } from "./DBOp";
 import { LinearGradient } from "expo-linear-gradient";
 
-export default function AddBudget({ navigation }) {
-  const [name, setName] = useState("");
-  const [desc, setDesc] = useState("");
-  const [value, setValue] = useState(null);
+export default function ModifyBudget({ navigation }) {
+  const { updateBudget, budgetIdx, budgets, delBudget } = Budgets();
 
-  const [date, setDate] = useState(new Date(Date.now()));
+  const budget = budgets[budgetIdx];
+
+  const [name, setName] = useState(budget.name);
+  const [desc, setDesc] = useState(budget.desc);
+  const [value, setValue] = useState(budget.newvalue);
+
+  const [date, setDate] = useState(new Date(budget.date));
   const [mode, setMode] = useState("date");
   const [show, setShow] = useState(false);
-
-  const { addBudget } = Budgets();
 
   const onChange = (_, selectedDate) => {
     const currentDate = selectedDate;
@@ -26,7 +28,7 @@ export default function AddBudget({ navigation }) {
   };
   return (
     <SafeAreaView
-      className="h-full items-center"
+      className="h-full items-center w-full"
       style={{ backgroundColor: "#E5DDF0", width: "100%" }}
     >
       <LinearGradient
@@ -44,7 +46,7 @@ export default function AddBudget({ navigation }) {
             onPress={() => navigation.goBack()}
           />
           <Text color="white" h5>
-            Add Budget.
+            Edit Budget.
           </Text>
           <Feather
             className="self-start"
@@ -54,7 +56,7 @@ export default function AddBudget({ navigation }) {
             onPress={() => {
               if (name === "" || desc === "" || value === null) {
                 Alert.alert(
-                  "Couldn't create budget",
+                  "Couldn't modify budget",
                   "please make sure you filled all the inputs before adding."
                 );
               } else {
@@ -64,16 +66,13 @@ export default function AddBudget({ navigation }) {
                     `the value you supplied "${value}" is invalid`
                   );
                 } else {
-                  addBudget({
+                  updateBudget(budgetIdx, {
                     name: name,
                     desc: desc,
                     value: parseFloat(value),
                     oldvalue: parseFloat(value),
                     newvalue: parseFloat(value),
                     date: date.toISOString(),
-                    transactions: [],
-                    goals: [],
-                    categories: [],
                   });
                   navigation.goBack();
                 }
@@ -82,10 +81,10 @@ export default function AddBudget({ navigation }) {
           />
         </View>
       </LinearGradient>
-      <View className="w-[90%] items-center">
-        <View className="mt-10 items-center w-full">
+      <View className="items-center w-[90%] my-8">
+        <View className="w-full">
           <Input
-            placeholder="| Display name. (ex. School)"
+            placeholder="Display name. (ex. School)"
             onChangeText={(e) => {
               setName(e);
             }}
@@ -94,9 +93,12 @@ export default function AddBudget({ navigation }) {
             style={{
               borderWidth: 0,
             }}
-          />
+            color="black"
+          >
+            {name}
+          </Input>
           <Input
-            placeholder="| Description. (ex. Budget related to this & that....)"
+            placeholder="Description. (ex. Budget related to this & that....)"
             onChangeText={(e) => {
               setDesc(e);
             }}
@@ -105,11 +107,12 @@ export default function AddBudget({ navigation }) {
             style={{
               borderWidth: 0,
             }}
-            multiline
-            numberOfLines={10}
-          />
+            color="black"
+          >
+            {desc}
+          </Input>
           <Input
-            placeholder="| Value."
+            placeholder="Value."
             type="numeric"
             onChangeText={setValue}
             icon="money"
@@ -117,9 +120,12 @@ export default function AddBudget({ navigation }) {
             style={{
               borderWidth: 0,
             }}
-          />
+            color="black"
+          >
+            {value}
+          </Input>
         </View>
-        <Text className="self-start mt-5" color="#9c62dc" h5>
+        <Text className="mt-5 pb-2 self-start" color="#9c62dc" h5>
           Date
         </Text>
         <View className="flex-row">
@@ -150,17 +156,17 @@ export default function AddBudget({ navigation }) {
             <Text>{date.toLocaleTimeString()}</Text>
           </Button>
         </View>
+        {show && (
+          <DateTimePicker
+            value={date}
+            mode={mode}
+            is24Hour={true}
+            onChange={onChange}
+            textColor="#6934BF"
+            style={{ backgroundColor: "#6934BF" }}
+          />
+        )}
       </View>
-      {show && (
-        <DateTimePicker
-          value={date}
-          mode={mode}
-          is24Hour={true}
-          onChange={onChange}
-          textColor="#6934BF"
-          style={{ backgroundColor: "#6934BF" }}
-        />
-      )}
     </SafeAreaView>
   );
 }

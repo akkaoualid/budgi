@@ -14,5 +14,6 @@ Demo & Devlog [here](https://oualid.me/arena/budgi).
 - react native gifted charts
 - react native reanimated carousel
 
-# Altough
-I regret writing it in JS ;(
+# Problems
+- JS and not TS :/
+- RN & expo document picker doesn't work for directories
