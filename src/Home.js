@@ -174,6 +174,7 @@ export default function Home({ route, navigation }) {
   const { budgets, budgetIdx, setBudgetIdx } = Budgets();
 
   const firstTime = budgets === undefined || budgets.length === 0;
+  console.log(budgets)
   const dontHaveTransacs =
     !firstTime && budgetIdx !== null
       ? budgets[budgetIdx].transactions.length === 0

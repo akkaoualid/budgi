@@ -328,7 +328,10 @@ export default function Audit({ navigation }) {
               iconColor="#9c62dc"
               iconSize={18}
               onEditCallback={() => navigation.navigate("ModifyBudget")}
-              onDeleteCallback={() => delBudget(budgetIdx)}
+              onDeleteCallback={() => {
+                delBudget(budgetIdx);
+                navigation.navigate("Home");
+              }}
             />
           </View>
           <View className="flex-row">

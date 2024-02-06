@@ -14,13 +14,7 @@ const Budgets = create(
         set({
           budgets: get().budgets.map((budget, i) => {
             return i === idx
-              ? {
-                  ...budget,
-                  name: newBudget.name,
-                  value: newBudget.value,
-                  desc: newBudget.desc,
-                  date: newBudget.date,
-                }
+              ? { ...newBudget, transactions: budget.transactions }
               : budget;
           }),
         }),
@@ -126,7 +120,7 @@ const Budgets = create(
       purgeAll: async () => set({ budgets: [], budgetIdx: 0 }),
     }),
     {
-      name: "budgi_budget.data",
+      name: "budgi_budget__.data",
       storage: createJSONStorage(() => AsyncStorage),
     }
   )

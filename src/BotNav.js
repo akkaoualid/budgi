@@ -67,7 +67,7 @@ export default function BotNav({ navigation, disabled }) {
                   marginTop: Dimensions.get("screen").height / 4.5,
                 }}
               >
-                <Text color="#9c62dc" h3>
+                <Text color="#6934BF" h3>
                   Create a new:
                 </Text>
                 <View

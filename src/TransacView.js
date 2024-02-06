@@ -9,7 +9,6 @@ export default function TransacView({ route, navigation }) {
   const { budgetIdx, tr_idx } = route.params;
   const { delTransac, budgets } = Budgets();
   const { currency } = AppSettings();
-  const name = budgets[budgetIdx].transactions[tr_idx].name;
   const description = budgets[budgetIdx].transactions[tr_idx].desc;
   const date = budgets[budgetIdx].transactions[tr_idx].date;
   const categories = budgets[budgetIdx].transactions[tr_idx].categories;
@@ -61,10 +60,6 @@ export default function TransacView({ route, navigation }) {
           className="items-center w-full rounded-lg py-8"
           style={{ backgroundColor: "white", gap: 20 }}
         >
-          <View className="flex-column w-5/6 justify-between">
-            <Text color="grey">Name</Text>
-            <Text style={{ fontFamily: "Inter-Bold" }}>{name}</Text>
-          </View>
           <View className="flex-column w-5/6 justify-between">
             <Text color="grey">Details</Text>
             <Text style={{ fontFamily: "Inter-Bold" }}>{description}</Text>

@@ -63,7 +63,7 @@ export default function AddTransaction({ navigation }) {
             color="white"
             size={25}
             onPress={() => {
-              if (name === "" || desc === "" || value === "") {
+              if (desc === "" || value === "") {
                 Alert.alert(
                   "Couldn't add transaction",
                   "please make sure you filled all the inputs before adding."
@@ -104,46 +104,51 @@ export default function AddTransaction({ navigation }) {
       <View className="w-5/6 items-center">
         <View>
           <View
-            className="flex-row items-center justify-between px-2 py-2 my-5 self-center rounded"
-            style={{ gap: 10, backgroundColor: "white" }}
+            start={[1, 1]}
+            end={[0, 1]}
+            colors={["#DB9AFF", "#6934BF"]}
+            className="flex-row items-center justify-between px-2 py-2 my-5 self-center rounded-xl"
+            style={{ gap: 10, backgroundColor: "#9c62dc" }}
           >
-            <TouchableHighlight
-              className="rounded"
+            <Pressable
+              className="rounded-xl"
               onPress={() => setExpn(true)}
-              activeOpacity={0.9}
+              activeOpacity={1}
             >
               <View
-                className="px-3 py-2 rounded"
+                className="px-3 py-1 rounded-xl"
                 style={{
-                  backgroundColor: expn ? "#9c62dc" : "white",
+                  backgroundColor: !expn ? "rgba(0,0,0,0)" : "white",
                   borderWidth: 0.5,
-                  borderColor: "#9c62dc",
+                  borderColor: "white",
                 }}
               >
                 <Text
-                  style={{ color: expn ? "white" : "#9c62dc", fontWeight: 400 }}
+                  className="uppercase text-xs"
+                  style={{ color: !expn ? "white" : "#9c62dc", fontWeight: 400 }}
                   p
                 >
                   Expense
                 </Text>
               </View>
-            </TouchableHighlight>
-            <TouchableHighlight
-              className="rounded"
+            </Pressable>
+            <Pressable
+              className="rounded-xl"
               onPress={() => setExpn(false)}
               activeOpacity={0.9}
             >
               <View
-                className="p-3 py-2 rounded"
+                className="p-3 py-1 rounded-xl"
                 style={{
-                  backgroundColor: !expn ? "#9c62dc" : "white",
+                  backgroundColor: expn ? "rgba(0,0,0,0)" : "white",
                   borderWidth: 0.5,
-                  borderColor: "#9c62dc",
+                  borderColor: "white",
                 }}
               >
                 <Text
+                  className="uppercase text-xs"
                   style={{
-                    color: !expn ? "white" : "#9c62dc",
+                    color: expn ? "white" : "#9c62dc",
                     fontWeight: 400,
                   }}
                   p
@@ -151,7 +156,7 @@ export default function AddTransaction({ navigation }) {
                   Income
                 </Text>
               </View>
-            </TouchableHighlight>
+            </Pressable>
           </View>
           <Input
             placeholder="Details."
@@ -161,7 +166,7 @@ export default function AddTransaction({ navigation }) {
             multiline
             numberOfLines={20}
             style={{
-              borderWidth: 0
+              borderWidth: 0,
             }}
           />
           <Input
@@ -171,13 +176,15 @@ export default function AddTransaction({ navigation }) {
             onChangeText={setValue}
             family="MaterialIcons"
             style={{
-              borderWidth: 0
+              borderWidth: 0,
             }}
           />
           {/* <Text color="#6934BF" h5>
                   Date.
                 </Text> */}
-          <Text className="mt-5" color="#9c62dc" h5>Date</Text>
+          <Text className="mt-5" color="#9c62dc" h5>
+            Date
+          </Text>
           <View className="flex-row w-full">
             <Button
               onPress={() => {
@@ -240,7 +247,7 @@ export default function AddTransaction({ navigation }) {
                   selected={selectedCat.find((v) => v === item.name)}
                   style={{
                     marginHorizontal: 2,
-                    borderRadius: 20
+                    borderRadius: 20,
                   }}
                 />
               )}
